@@ -1,6 +1,7 @@
 #include "Fecha.hpp"
-#include <ctime>
+#include "ctime"
 #include "iostream"
+#include "locale.h"
 
 /*Fecha.cpp*/
 
@@ -31,16 +32,91 @@ Fecha::Fecha(const char* c){
 	FechaValida();
 }
 
-/*Observadores*/
-//Devuelve Fecha
-void Fecha::mostrar()const noexcept{
-	std::cout << "Dia: " << this->dia() << " Mes: " << this->mes() << " Ano: " << this->ano() << "." << std::endl;
+/*Operadores internos*/
+//Operador const char*.
+Fecha::operator const char*()const noexcept{
+	static char* fecha=new char[50];
+	time_t tiempo=time(nullptr);
+	tm* fechaTiempo=localtime(&tiempo);
+	std::locale::global(std::locale(""));
+
+	fechaTiempo->tm_mday=this->dia_;
+	fechaTiempo->tm_mon=this->mes_-1;
+	fechaTiempo->tm_year=this->ano_-1900;
+	fechaTiempo->tm_hour=12;
+
+	mktime(fechaTiempo);
+	strftime(fecha,50,"%A %e de %B de %Y",fechaTiempo);
+
+	return fecha;
+}
+
+//Operador +=.
+Fecha& Fecha::operator+=(int dia){
+	time_t tiempo=time(nullptr);
+	tm* fechaS=localtime(&tiempo);
+
+	fechaS->tm_mday=this->dia_+dia;
+	fechaS->tm_mon=this->mes_-1;
+	fechaS->tm_year=this->ano_-1900;
+	fechaS->tm_hour=12;
+
+	mktime(fechaS);
+	this->dia_=fechaS->tm_mday;
+	this->mes_=fechaS->tm_mon+1;
+	this->ano_=fechaS->tm_year+1900;
+
+	FechaValida();
+
+	return *this;
+}
+
+//Operador -=.
+Fecha& Fecha::operator-=(int dia){
+	return *this+=-dia;
+}
+
+//Operador +.
+Fecha& Fecha::operator+(int dia){
+	return *this+=dia;
+}
+
+//Operador -.
+Fecha& Fecha::operator-(int dia){
+	return *this-=dia;
+}
+
+//Operador preincremento ++.
+Fecha& Fecha::operator++(){
+	return *this+=1;
+}
+
+//Operador preincremento --.
+Fecha& Fecha::operator--(){
+	return *this-=1;
+}
+
+//Operador postincremento ++.
+Fecha Fecha::operator++(int dia){
+	Fecha aux(*this);
+	*this+=1;
+
+	return aux;
+}
+
+//Operador postincremento --.
+Fecha Fecha::operator--(int dia){
+	Fecha aux(*this);
+	*this-=1;
+
+	return aux;
 }
 
 
 /*Metodos privados*/
 //Fecha Valida.
 void Fecha::FechaValida(){
+	std::locale::global(std::locale());
 	//Asignar valores por defecto.
 	if(this->dia_==0){
 		this->dia_=diaH;
@@ -55,10 +131,10 @@ void Fecha::FechaValida(){
 	//Comprobar que la Fecha sea valida.
 	//Comprobamos que no se sale del rango de anos permitodo.
 	if(this->ano_>Fecha::AnnoMaximo){
-		throw Invalida("Ano mayor que 2037.\n");
+		throw Invalida("Año mayor que 2037.\n");
 	}
 	if(this->ano_<Fecha::AnnoMinimo){
-		throw Invalida("Ano menor que 1902.\n");
+		throw Invalida("Año menor que 1902.\n");
 	}
 
 	switch(this->mes_){
@@ -68,7 +144,7 @@ void Fecha::FechaValida(){
 		case 9:
 		case 11:
 			if(this->dia_>30 || this->dia_<0){
-				throw Invalida("Dia introducido invalido.\n");
+				throw Invalida("Día introducido inválido.\n");
 			}break;
 		case 1:
 		case 3:
@@ -78,21 +154,70 @@ void Fecha::FechaValida(){
 		case 10:
 		case 12:
 			if(this->dia_>31 || this->dia_<0){
-				throw Invalida("Dia introducido invalido.\n");
+				throw Invalida("Día introducido inválido.\n");
 			}break;
 		case 2:
 			//Comprobamos si el ano es bisiesto.
 			if(this->ano_%4==0 && (this->ano_%400==0 || this->ano_%100!=0)){
 				if(this->dia_>29 || this->dia_<0){
-					throw Invalida("Dia introducido invalido.\n");
+					throw Invalida("Día introducido inválido.\n");
 				}
 			}else{
 				if(this->dia_>28 || this->dia_<0){
-					throw Invalida("Dia introducido invalido.\n");
+					throw Invalida("Día introducido inválido.\n");
 				}
 			}break;
 		default:
-			throw Invalida("Mes introducido invalido.\n");
+			throw Invalida("Mes introducido inválido.\n");
 	}
 }
 
+/*Operadores externos*/
+//Operador ==.
+bool operator==(const Fecha& f1,const Fecha& f2)noexcept{
+	//Comparamos ano.
+	if(f1.anno()!=f2.anno()){
+		return false;
+	}
+	if(f1.mes()!=f2.mes()){
+		return false;
+	}
+	if(f1.dia()!=f2.dia()){
+		return false;
+	}
+	return true;
+}
+
+//Operador !=.
+bool operator!=(const Fecha& f1,const Fecha& f2)noexcept{
+	return !(f1==f2);
+}
+
+//Operador <.
+bool operator<(const Fecha& f1,const Fecha& f2)noexcept{
+	if(f1.anno()<f2.anno()){
+		return true;
+	}
+	if(f1.anno()==f2.anno() && f1.mes()<f2.mes()){
+		return true;
+	}
+	if(f1.anno()==f2.anno() && f1.mes()==f2.mes() && f1.dia()<f2.dia()){
+		return true;
+	}
+	return false;
+}
+
+//Operador <=.
+bool operator<=(const Fecha& f1,const Fecha& f2)noexcept{
+	return (f1<f2 || f1==f2);
+}
+
+//Operador >.
+bool operator>(const Fecha& f1,const Fecha& f2)noexcept{
+	return !(f1<=f2);
+}
+
+//Operador >=.
+bool operator>=(const Fecha& f1,const Fecha& f2)noexcept{
+	return !(f1<f2);
+}

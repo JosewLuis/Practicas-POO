@@ -10,9 +10,9 @@ public:
 	//Constructor con 3 elementos.
 	explicit Fecha(int dia=0,int mes=0,int ano=0);
 	//Constructor de copia.
-	explicit Fecha(const Fecha& F);
+	Fecha(const Fecha& F);
 	//Constructo const char*.
-	explicit Fecha(const char* c);
+	Fecha(const char* c);
 
 	/*Clase Invalida*/
 	class Invalida{
@@ -27,15 +27,35 @@ public:
 		const char* error_;
 	};
 
+	/*Operadores internos*/
+	//Operador const char*.
+	operator const char*()const noexcept;
+	//Operador +=.
+	Fecha& operator+=(int dia);
+	//Operador -=.
+	Fecha& operator-=(int dia);
+	//Operador +.
+	Fecha& operator+(int dia);
+	//Operador -.
+	Fecha& operator-(int dia);
+	//Operador preincremento ++.
+	Fecha& operator++();
+	//Operador preincremento --.
+	Fecha& operator--();
+	//Operador postincremento ++.
+	Fecha operator++(int dia);
+	//Operador postincremento --.
+	Fecha operator--(int dia);
+
 	/*Observadores*/
 	//Devuelve dia.
 	inline int dia()const noexcept{return this->dia_;}
 	//Devuelve mes.
 	inline int mes()const noexcept{return this->mes_;}
 	//Devuelve ano.
-	inline int ano()const noexcept{return this->ano_;}
-	//Devuelve Fecha
-	void mostrar()const noexcept;
+	inline int anno()const noexcept{return this->ano_;}
+	//Devuelve fecha.
+	inline void mostrar()const noexcept{std::cout << "Dia: " << this->dia() << " Mes: " << this->mes()  << " Ano: " << this->anno() << ".\n";}
 
 	/*Variables estaticas*/
 	//Ano minimo.
@@ -47,6 +67,20 @@ private:
 	int dia_,mes_,ano_;
 	void FechaValida();
 };
+
+/*Operadores externos*/
+//Operador ==.
+bool operator==(const Fecha& f1,const Fecha& f2)noexcept;
+//Operador !=.
+bool operator!=(const Fecha& f1,const Fecha& f2)noexcept;
+//Operador <.
+bool operator<(const Fecha& f1,const Fecha& f2)noexcept;
+//Operador <=.
+bool operator<=(const Fecha& f1,const Fecha& f2)noexcept;
+//Operador >.
+bool operator>(const Fecha& f1,const Fecha& f2)noexcept;
+//Operador >=.
+bool operator>=(const Fecha& f1,const Fecha& f2)noexcept;
 
 
 #endif
