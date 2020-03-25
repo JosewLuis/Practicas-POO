@@ -19,6 +19,7 @@ Cadena::Cadena(size_t tam,char s):tam_(tam){
 //Constructor de copia.
 Cadena::Cadena(const Cadena& c){
 	this->tam_=c.tam_;
+	this->s_=new char[this->tam_+1];
 
 	strcpy(this->s_,c.s_);
 }
@@ -32,6 +33,12 @@ Cadena::Cadena(const char* c){
 	this->s_[this->tam_]='\0';
 }
 
+//Destructor.
+Cadena::~Cadena(){
+	delete[] s_;
+	tam_=0;
+}
+
 /*Operadores internos*/
 //Operador const char*.
 Cadena::operator const char*()const noexcept{
@@ -40,27 +47,35 @@ Cadena::operator const char*()const noexcept{
 
 //Operador +=.
 Cadena& Cadena::operator+=(const Cadena& c)noexcept{
-	this->tam_=this->tam_+c.tam_;
-	char* aux=new char[this->tam_];
+	int tam=this->tam_+c.tam_+1;
+	char* buff=new char[tam];
 
-	strcpy(aux,this->s_);
-	strcat(aux,c.s_);
-	strcat(aux,"\0");
+	strcpy(buff,this->s_);
+	strcat(buff,c.s_);
+	strcat(buff,"\0");
 
 	delete[] this->s_;
 
-	this->s_=new char[this->tam_];
+	this->tam_=tam;
+	this->s_=new char[tam];
 
-	strcpy(this->s_, aux);
+	strcpy(this->s_,buff);
 
-	delete[] aux;
+	delete[] buff;
 
 	return *this;
 }
 
-//Operador +.
-Cadena& Cadena::operator+(const Cadena& c)noexcept{
-	return *this+=c;
+//Operador =.
+Cadena& Cadena::operator=(const Cadena& c)noexcept{
+	if(this!=&c){
+		delete[] this->s_;
+		this->tam_=c.tam_;
+		this->s_=new char[this->tam_+1];
+		strcpy(this->s_,c.s_);
+	}
+
+	return *this;
 }
 
 //Operador [] const.
@@ -108,6 +123,14 @@ const char* Cadena::substr(int ind,int tam)const{
 }
 
 /*Operadores externos*/
+//Concatenacion.
+Cadena operator+(const Cadena& c1,const Cadena& c2)noexcept{
+	Cadena aux=c1;
+	aux+=c2;
+
+	return aux;
+}
+
 //Operador ==.
 bool operator==(const Cadena& c1,const Cadena& c2)noexcept{
 	return strcmp(c1,c2)==0;

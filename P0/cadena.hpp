@@ -14,14 +14,16 @@ public:
 	Cadena(const Cadena& c);
 	//Constructor con const char*.
 	Cadena(const char* c);
+	//Destructor.
+	~Cadena();
 
 	/*Operadores internos*/
 	//Operador const char*.
 	operator const char*()const noexcept;
 	//Operador +=.
 	Cadena& operator+=(const Cadena& c)noexcept;
-	//Operador +.
-	Cadena& operator+(const Cadena& c)noexcept;
+	//Operador =.
+	Cadena& operator=(const Cadena& c)noexcept;
 	//Operador [] const.
 	const char operator[](int i)const noexcept;
 	//Operador [] no const.
@@ -45,6 +47,8 @@ private:
 };
 
 /*Operadores externos*/
+//Concatenacion.
+Cadena operator+(const Cadena& c1,const Cadena& c2)noexcept;
 //Operador ==.
 bool operator==(const Cadena& c1,const Cadena& c2)noexcept;
 //Operador !=.
