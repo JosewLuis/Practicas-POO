@@ -107,19 +107,22 @@ char& Cadena::at(int i){
 }
 
 //Metodo substr.
-const char* Cadena::substr(int ind,int tam)const{
-	if(ind<0 || ind>=this->tam_ || ind+tam>=this->tam_){
+Cadena Cadena::substr(int ind,int tam)const{
+	if(ind<0 || ind>=this->tam_ || ind+tam>=this->tam_ || tam<0){
 		throw std::out_of_range("Índice no válido");
 	}
 
 	char* aux=new char[tam+1];
 	int j=0;
-	for(int i=ind;i<ind+tam;i++){
+	for(int i=ind;i<=ind+tam;i++){
 		aux[j]=this->s_[i];
+		j++;
 	}
 	aux[tam]='\0';
+
+	Cadena c(aux);
 	
-	return aux;
+	return c;
 }
 
 /*Operadores externos*/

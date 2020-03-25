@@ -39,7 +39,7 @@ public:
 	//Devuelve iesimo elemento con excepciones.
 	char& at(int i);
 	//Metodo substr.
-	const char* substr(int ind,int tam)const;
+	Cadena substr(int ind,int tam)const;
 private:
 	//Atributos.
 	size_t tam_;
