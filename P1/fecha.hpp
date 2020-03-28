@@ -38,9 +38,9 @@ public:
 	//Operador -=.
 	Fecha& operator-=(int dia);
 	//Operador +.
-	Fecha& operator+(int dia);
+	Fecha operator+(int dia)const;
 	//Operador -.
-	Fecha& operator-(int dia);
+	Fecha operator-(int dia)const;
 	//Operador preincremento ++.
 	Fecha& operator++();
 	//Operador preincremento --.
@@ -87,7 +87,7 @@ bool operator>=(const Fecha& f1,const Fecha& f2)noexcept;
 //Operador de extraccion.
 ostream& operator<<(ostream& os,const Fecha& f)noexcept;
 //Operador de inserccion.
-istream& operator>>(istream& is,const Fecha& f)noexcept;
+istream& operator>>(istream& is,Fecha& f)noexcept;
 
 
 #endif

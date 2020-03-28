@@ -77,13 +77,19 @@ Fecha& Fecha::operator-=(int dia){
 }
 
 //Operador +.
-Fecha& Fecha::operator+(int dia){
-	return *this+=dia;
+Fecha Fecha::operator+(int dia)const{
+	Fecha f=*this;
+	f+=dia; 
+
+	return f;
 }
 
 //Operador -.
-Fecha& Fecha::operator-(int dia){
-	return *this-=dia;
+Fecha Fecha::operator-(int dia)const{
+	Fecha f=*this;
+	f-=dia; 
+
+	return f;
 }
 
 //Operador preincremento ++.
@@ -229,14 +235,14 @@ ostream& operator<<(ostream& os,const Fecha& f)noexcept{
 }
 
 //Operador de inserccion.
-istream& operator>>(istream& is,const Fecha& f)noexcept{
+istream& operator>>(istream& is,Fecha& f)noexcept{
 	//Tamano correcto de las entradas.
 	char fech[11];
 
 	is >> setw(11) >> fech;
 
 	try{
-		Fecha f(fech);
+		f=Fecha(fech);
 	}
 	catch(const Fecha::Invalida& e){
 		is.setstate(std::ios_base::failbit);
