@@ -16,7 +16,7 @@ public:
 	//Constructor de copia.
 	Cadena(const Cadena& c);
 	//Constructor de movimiento.
-	Cadena(const Cadena&& c);
+	Cadena(Cadena&& c);
 	//Constructor con const char*.
 	Cadena(const char* c);
 	//Destructor.
@@ -27,7 +27,7 @@ public:
 	Cadena& operator+=(const Cadena& c)noexcept;
 	//Operador =.
 	Cadena& operator=(const Cadena& c)noexcept;
-	Cadena& operator=(const Cadena&& c)noexcept;
+	Cadena& operator=( Cadena&& c)noexcept;
 	Cadena& operator=(const char* c)noexcept;
 	//Operador [] const.
 	const char operator[](int i)const noexcept;
@@ -92,7 +92,7 @@ bool operator>=(const Cadena& c1,const Cadena& c2)noexcept;
 //Operador de extraccion.
 ostream& operator<<(ostream& os,const Cadena& c)noexcept;
 //Operador de inserccion.
-istream& operator>>(istream& is,Cadena&& c)noexcept;
+istream& operator>>(istream& is,Cadena& c)noexcept;
 
 
 #endif

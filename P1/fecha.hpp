@@ -11,8 +11,6 @@ public:
 	/*Constructores*/
 	//Constructor con 3 elementos.
 	explicit Fecha(int dia=0,int mes=0,int ano=0);
-	//Constructor de copia.
-	Fecha(const Fecha& F);
 	//Constructo const char*.
 	Fecha(const char* c);
 
@@ -87,7 +85,7 @@ bool operator>=(const Fecha& f1,const Fecha& f2)noexcept;
 //Operador de extraccion.
 ostream& operator<<(ostream& os,const Fecha& f)noexcept;
 //Operador de inserccion.
-istream& operator>>(istream& is,Fecha& f)noexcept;
+istream& operator>>(istream& is,Fecha& f);
 
 
 #endif

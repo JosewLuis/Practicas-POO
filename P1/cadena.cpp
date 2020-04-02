@@ -9,9 +9,8 @@
 /*Constructores*/
 //Constructor con 2 elementos.
 Cadena::Cadena(size_t tam,char s):tam_(tam){
-	this->tam_=tam;
 	this->s_=new char[this->tam_+1];
-	memset(this->s_,s,tam);
+	memset(this->s_,s,this->tam_);
 	this->s_[tam]='\0';
 }
 
@@ -23,7 +22,7 @@ Cadena::Cadena(const Cadena& c){
 }
 
 //Constructor de movimiento.
-Cadena::Cadena(const Cadena&& c){
+Cadena::Cadena(Cadena&& c):tam_{0},s_{nullptr}{
 	*this=move(c);
 }
 
@@ -31,8 +30,8 @@ Cadena::Cadena(const Cadena&& c){
 Cadena::Cadena(const char* c){
 	this->tam_=strlen(c);
 	this->s_=new char[this->tam_+1];
-	memcpy(this->s_,c,strlen(c));
-	this->s_[tam_]='\0';
+	memcpy(this->s_,c,this->tam_);
+	this->s_[this->tam_]='\0';
 }
 
 //Destructor.
@@ -45,21 +44,17 @@ Cadena::~Cadena(){
 /*Operadores internos*/
 //Operador +=.
 Cadena& Cadena::operator+=(const Cadena& c)noexcept{
-	int tam=this->tam_+c.tam_+1;
-	char* buff=new char[tam];
+	this->tam_+=c.tam_;
 
-	strcpy(buff,this->s_);
-	strcat(buff,c.s_);
-	strcat(buff,"\0");
+	char* aux=new char[this->tam_+1];
 
+	strcpy(aux,this->s_);
+	strcat(aux,c.s_);
+	aux[this->tam_]='\0';
 	delete[] this->s_;
 
-	this->tam_=tam;
-	this->s_=new char[tam];
-
-	strcpy(this->s_,buff);
-
-	delete[] buff;
+	this->s_=new char[this->tam_+1];
+	memcpy(this->s_,aux,this->tam_+1);
 
 	return *this;
 }
@@ -77,14 +72,15 @@ Cadena& Cadena::operator=(const Cadena& c)noexcept{
 	return *this;
 }
 
-Cadena& Cadena::operator=(const Cadena&& c)noexcept{
+Cadena& Cadena::operator=(Cadena&& c)noexcept{
 	//Evitamos autoasignacion.
 	if(this!=&c){
 		delete[] this->s_;
 		this->tam_=c.tam_;
 		this->s_=new char[this->tam_+1];
 		memcpy(this->s_,c.s_,this->tam_+1);
-		c.~Cadena();
+		c.tam_=0;
+		c.s_=nullptr;
 	}
 
 	return *this;
@@ -174,29 +170,28 @@ Cadena::const_iterator Cadena::end()const{
 }
 
 Cadena::const_iterator Cadena::cbegin()const{
-	return this->s_;
+	return begin();
 }
 
 Cadena::const_iterator Cadena::cend()const{
-	return this->s_+this->tam_;
+	return end();
 }
 
 Cadena::const_reverse_iterator Cadena::rbegin()const{
-	return const_reverse_iterator(begin());
+	return const_reverse_iterator(cend());
 }
 
 Cadena::const_reverse_iterator Cadena::rend()const{
-	return const_reverse_iterator(end());
+	return const_reverse_iterator(cbegin());
 }
 
 Cadena::const_reverse_iterator Cadena::crbegin()const{
-	return const_reverse_iterator(begin());
-}
-
-Cadena::const_reverse_iterator Cadena::crend()const{
 	return const_reverse_iterator(end());
 }
 
+Cadena::const_reverse_iterator Cadena::crend()const{
+	return const_reverse_iterator(begin());
+}
 
 /*Operadores externos*/
 //Concatenacion.
@@ -214,7 +209,7 @@ bool operator==(const Cadena& c1,const Cadena& c2)noexcept{
 
 //Operador !=.
 bool operator!=(const Cadena& c1,const Cadena& c2)noexcept{
-	return !(c1.c_str()==c2.c_str());
+	return !(c1==c2);
 }
 
 //Operador <.
@@ -224,17 +219,17 @@ bool operator<(const Cadena& c1,const Cadena& c2)noexcept{
 
 //Operador <=.
 bool operator<=(const Cadena& c1,const Cadena& c2)noexcept{
-	return c1.c_str()==c2.c_str() || c1.c_str()<c2.c_str();
+	return c1==c2 || c1<c2;
 }
 
 //Operador >.
 bool operator>(const Cadena& c1,const Cadena& c2)noexcept{
-	return !(c1.c_str()<=c2.c_str());
+	return !(c1<=c2);
 }
 
 //Operador >=.
 bool operator>=(const Cadena& c1,const Cadena& c2)noexcept{
-	return !(c1.c_str()<c2.c_str());
+	return !(c1<c2);
 }
 
 //Operador de extraccion.
@@ -244,8 +239,8 @@ ostream& operator<<(ostream& os,const Cadena& c)noexcept{
 }
 
 //Operador de inserccion.
-istream& operator>>(istream& is,Cadena&& c)noexcept{
-    char string[33]{""}; 
+istream& operator>>(istream& is,Cadena& c)noexcept{
+    char string[33]{"\0"}; 
     is.width(33);
     is >> string;
     

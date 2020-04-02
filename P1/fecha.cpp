@@ -18,17 +18,10 @@ Fecha::Fecha(int dia,int mes,int ano):dia_(dia),mes_(mes),ano_(ano){
 	FechaValida();
 }
 
-//Constructor de copia.
-Fecha::Fecha(const Fecha& F){
-	this->dia_=F.dia_;
-	this->mes_=F.mes_;
-	this->ano_=F.ano_;
-}
-
 //Constructor const char*.
 Fecha::Fecha(const char* c){
 	if(sscanf(c,"%d/%d/%d",&dia_,&mes_,&ano_)!=3){
-		exit(0);
+		throw Invalida("Cadena inválida."); 
 	}
 	FechaValida();
 }
@@ -235,17 +228,18 @@ ostream& operator<<(ostream& os,const Fecha& f)noexcept{
 }
 
 //Operador de inserccion.
-istream& operator>>(istream& is,Fecha& f)noexcept{
+istream& operator>>(istream& is,Fecha& f){
 	//Tamano correcto de las entradas.
-	char fech[11];
+	char fecha[11];
 
-	is >> setw(11) >> fech;
+	is >> std::setw(11) >> fecha;
 
 	try{
-		f=Fecha(fech);
+		f=Fecha(fecha);
 	}
-	catch(const Fecha::Invalida& e){
+	catch(Fecha::Invalida& e){
 		is.setstate(std::ios_base::failbit);
+		throw e;
 	}
 
 	return is;
