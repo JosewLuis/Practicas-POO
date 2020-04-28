@@ -1,18 +1,19 @@
-#ifndef _USUARIO_HP_
+#ifndef _USUARIO_HPP_
 #define _USUARIO_HPP_
-#include"cadena.hpp"
 #include<map>
+#include<utility>
 #include<unordered_map>
 #include<unordered_set>
-#include<utility>
-#include"tarjeta.cpp"
-#include"articulo.hpp"
 #include<random>
 #include"unistd.h"
+#include"articulo.hpp"
+#include"tarjeta.hpp"
+#include"cadena.hpp"
 
 using namespace std;
 
 class Tarjeta;
+class Numero;
 
 /*usuario.cpp*/
 
@@ -49,8 +50,8 @@ private:
 class Usuario{
 public:
 	/*Tipo para la Clase*/
-	typedef std::map<Numero,Tarjeta*> Tarjetas;
-	typedef	std::unordered_map<Articulo*,unsigned int> Articulos;
+	typedef map<Numero,Tarjeta*> Tarjetas;
+	typedef	unordered_map<Articulo*,unsigned int> Articulos;
 
 	/*Constructores*/
 	explicit Usuario(const Cadena& id,const Cadena& nombre,const Cadena& apell,const Cadena& direccion,const Clave& clave);
@@ -71,7 +72,7 @@ public:
 
     /*Metodos asociativos*/
     //Asocia tarjeta.
-    void es_titula_de(const Tarjeta& t)noexcept;
+    void es_titular_de(const Tarjeta& t)noexcept;
     //Desasocia.
     void no_es_titular_de(const Tarjeta& t)noexcept;
     //Asocia articulo.

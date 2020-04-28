@@ -1,13 +1,15 @@
 #ifndef _TARJETA_HPP_
 #define _TARJETA_HPP_
-#include<iostream>
-#include"usuario.cpp"
-#include"cadena.cpp"
-#include"fecha.cpp"
+#include<cctype>
+#include<algorithm>
 #include<set>
+#include"fecha.hpp"
+#include"cadena.hpp"
+#include"usuario.hpp"
 
 using namespace std;
 
+bool luhn(const Cadena& numero);
 class Usuario;
 
 /*Clase Numero*/

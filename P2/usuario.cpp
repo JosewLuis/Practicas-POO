@@ -82,9 +82,9 @@ Usuario::~Usuario(){
 
 /*Metodos asociativos*/
 //Asocia tarjeta.
-void Usuario::es_titula_de(const Tarjeta& t)noexcept{
+void Usuario::es_titular_de(const Tarjeta& t)noexcept{
     if(this->id==t.titular()->id() || t.titular()==nullptr){
-        pair<Tarjetas::iterator,bool>p=this->Ts.insert(t);
+        pair<Tarjetas::iterator,bool>p=this->Ts.insert(make_pair(t.numero(),&t));
         if(p.second()==false){
             cout << "No se ha insertado la tarjeta con numero: " << t.numero() << endl;
         }
