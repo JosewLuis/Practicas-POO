@@ -1,4 +1,5 @@
 #include<iostream>
+#include<iomanip>
 #include"articulo.hpp"
 #define EURO char(128)
 
@@ -14,6 +15,7 @@ Articulo::Articulo(const Cadena& ref,const Cadena& titulo,const Fecha& publ,doub
 /*Operadores externos*/
 //Operador ostream.
 ostream& operator <<(ostream& os, const Articulo& A)noexcept{
+	setlocale(LC_ALL,"es_ES");
 	os << "[";
 	os << A.referencia();
 	os << "] \"";

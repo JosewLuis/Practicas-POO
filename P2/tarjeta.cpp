@@ -1,49 +1,53 @@
 #include"tarjeta.hpp"
 #include<iostream>
-#include"luhn.cpp"
+#include<iomanip>
+#include<string.h>
+#include<stdlib.h>
+//#include"luhn.cpp"
+
+set<Numero> Tarjeta::numeros{};
 
 /*Clase Numero*/
 
+using namespace std;
+
 /*Tipo Razon*/
-typedef typename Numero::Incorrecto::Razon razon;
+typedef typename Numero::Razon razon;
 
 /*Constructores*/
 Numero::Numero(const Cadena& numero):numero(numero){
-	int count=0;
-	//Comprobamos que sean numeros/espacios.
-	for(int i=0;i<numero.length() && numero[i]!='\0';i++){
-		if(isalpha(numero[i])){
-			throw Incorrecto(razon::DIGITOS);
+	char cad[20];
+	int j=0;
+
+	for(auto i=numero.begin();i!=numero.end();i++){
+		if(!isspace(*i)){
+			if(isalpha(*i)){
+				throw Incorrecto(Razon::DIGITOS);
+			}
+			cad[j]=*i;
+			j++;
 		}
-		if(numero[i]!=' '){
-			count++;
-		}
+  	}
+	cad[j]='\0';
+
+	Cadena numAux{cad};
+
+	int tam=j;
+
+	if(tam<13 || tam>19){
+		throw Incorrecto(LONGITUD);
+	}
+	if(!luhn(numAux)){
+		throw Incorrecto(NO_VALIDO);
 	}
 
-	Cadena aux(count);
-
-	count=0;
-	for(auto it=numero.begin();it!=numero.end();it++){
-		if((*it)!=' '){
-			aux[count]=(*it);
-			count++;
-		}
-	}
-	aux[count]='\0';
-
-	if(aux.length()<13 || aux.length()>19){
-		throw Incorrecto(razon::LONGITUD);
-	}
-
-	if(!luhn(numero)){
-      throw Incorrecto(razon::NO_VALIDO);
-	}
+	this->numero=numAux;
 }
 
 /*Operadores externos*/
 //Operador <.
 bool operator <(const Numero& n1,const Numero n2)noexcept{
-	return n1<n2;
+	return Cadena{n1}<Cadena{n2};
 }
 
 
@@ -52,7 +56,7 @@ bool operator <(const Numero& n1,const Numero n2)noexcept{
 typedef typename Tarjeta::Tipo Tipo;
 
 /*Constructores*/
-Tarjeta::Tarjeta(const Numero& numero,Usuario& usuario,const Fecha fecha):numero_(numero),usuario(usuario),fecha(fecha),activa_(true){
+Tarjeta::Tarjeta(const Numero& numero,Usuario& usuario,const Fecha fecha):numero_(numero),usuario_(&usuario),fecha_(fecha),activa_(true){
 	Fecha hoy;
 	if(fecha<hoy){
 		throw Caducada(fecha);
@@ -74,19 +78,55 @@ Tarjeta::Tarjeta(const Numero& numero,Usuario& usuario,const Fecha fecha):numero
         	}
     	default: this->tipo_=Tipo::Otro;break;		
 	}
+
+	Cadena tf{usuario.nombre()+" "+usuario.apellidos()};
+
+    for(int i=0;i<tf.length();i++){
+        tf[i]=toupper(tf[i]);
+	}
+    
+    this->titular_facial_=tf;
+
+    usuario_->es_titular_de(*this);	
 }
 
 /*Destructor*/
 Tarjeta::~Tarjeta(){
-	if(this->usuario!=nullptr){
-        const_cast<Usuario*>(this->usuario)->no_es_titular_de(*this);
+	if(this->usuario_!=nullptr){
+        const_cast<Usuario*>(this->usuario_)->no_es_titular_de(*this);
 	}
     
-    numeros.erase(this->numero_);	
+    this->numeros.erase(this->numero_);	
 }
 
 /*Operadores externos*/
 //Operador <.
 bool operator<(const Tarjeta& T1,const Tarjeta& T2)noexcept{
 	return T1.numero()<T2.numero();
+}
+
+//Operador ostream.
+ostream& operator <<(ostream& os,const Tarjeta& T){
+    switch (T.tipo()){
+        case Tipo::VISA: os << "VISA";break;
+        case Tipo::Mastercard: os << "Mastercard";break;
+        case Tipo::Maestro: os << "Maestro";break;
+        case Tipo::AmericanExpress: os << "American Expres";break;
+        case Tipo::JCB: os << "JCB";break;
+        default: os << "Error, ninguna tarjeta conocida" << endl;
+    }
+
+    os << "\n"; 
+	os << T.numero(); 
+	os << "\n"; 
+	os << T.titular_facial();
+    os << "\n";
+	os << "Caduca: ";
+	os << setprecision(2);
+	os << ((T.caducidad().mes()<10)?'0':' '); 
+	os << T.caducidad().mes(); 
+	os << "/"; 
+	os << (T.caducidad().anno()%100) << endl;
+
+    return os;
 }

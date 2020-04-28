@@ -1,14 +1,14 @@
 #ifndef _USUARIO_HPP_
 #define _USUARIO_HPP_
+#include"unistd.h"
+#include"articulo.hpp"
+#include"tarjeta.hpp"
+#include"cadena.hpp"
 #include<map>
 #include<utility>
 #include<unordered_map>
 #include<unordered_set>
 #include<random>
-#include"unistd.h"
-#include"articulo.hpp"
-#include"tarjeta.hpp"
-#include"cadena.hpp"
 
 using namespace std;
 
@@ -23,11 +23,11 @@ public:
 	/*Constructores*/
 	//Constructor.
 	Clave(const char* texto);
+	enum Razon{CORTA,ERROR_CRYPT};
 
 	/*Clase Incorrecta*/
 	class Incorrecta{
 	public:
-		enum Razon{CORTA,ERROR_CRYPT};
 		Incorrecta(Razon razon):razon_(razon){}
 		inline Razon razon()const noexcept{return this->razon_;}
 	private:
@@ -94,16 +94,23 @@ public:
     inline const Articulos& compra()const noexcept{return this->As;}
     //Numero de articulos.
     inline int n_articulos()const noexcept{return this->As.size();}
+	//Clave.
+	inline Clave contrasena()const noexcept{return this->contrasena_;}
 
 private:
 	/*Atributos*/
 	Cadena id_,nombre_,apell_,direccion_;
-	Clave contrasena;
+	Clave contrasena_;
 	Tarjetas Ts;
 	Articulos As;
 
 	static unordered_set<Cadena> usuarios;
 };
 
+/*Operadores Externos*/
+//Operador ostream
+ostream& operator <<(ostream& os,const Usuario& U);
+//Mostrar carro.
+void mostrar_carro(ostream& os,const Usuario& U);
 
 #endif

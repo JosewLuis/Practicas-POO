@@ -16,11 +16,11 @@ class Usuario;
 class Numero{
 public:
 	Numero(const Cadena& numero);
+	enum Razon{LONGITUD,DIGITOS,NO_VALIDO};
 
 	/*Clase Invalido*/
 	class Incorrecto{
 	public:
-		enum Razon{LONGITUD,DIGITOS,NO_VALIDO};
 		Incorrecto(Razon razon):razon_(razon){}
 		inline Razon razon()const noexcept{return this->razon_;}	
 	private:
@@ -45,6 +45,7 @@ bool operator <(const Numero& n1,const Numero n2)noexcept;
 class Tarjeta{
 public:
 	enum Tipo{Otro,VISA,Mastercard,Maestro,JCB,AmericanExpress};
+	typedef set<Numero> Numeros;
 
 	/*Constructores*/
 	explicit Tarjeta(const Numero& numero,Usuario& usuario,const Fecha fecha);
@@ -84,27 +85,31 @@ public:
 
     /*Observadores*/
     //Numero.
-    const Numero numero()const noexcept{return this->numero_;}
+    inline const Numero numero()const noexcept{return this->numero_;}
     //Titular.
-    const Usuario* titular()const noexcept{return this->usuario;}
+    inline const Usuario* titular()const noexcept{return this->usuario_;}
     //Caducidad.
-    const Fecha caducidad()const noexcept{return this->fecha;}
+    inline const Fecha caducidad()const noexcept{return this->fecha_;}
     //Activa.
-    bool activa()const noexcept{return this->activa_;}
+    inline const bool activa()const noexcept{return this->activa_;}
     //Tipo.
-    Tipo tipo(){return this->tipo_;}
+    inline const Tipo tipo()const{return this->tipo_;}
+	//Titular facial
+	inline const Cadena titular_facial()const{return this->titular_facial_;}
 
-    inline void activa(bool b=true)noexcept{this->activa_=b;}
-    inline void anula_titular(){this->usuario=nullptr; activa(false);}
+    inline bool activa(bool b=true)noexcept{this->activa_=b; return this->activa_;}
+    inline void anula_titular(){this->usuario_=nullptr; activa(false);}
 
 private:
 	/*Atributos*/
+	static Numeros numeros;
+
 	Tipo tipo_;
-	const Numero numero_;
-	const Usuario* usuario;
-	const Fecha fecha;
+	Numero numero_;
+	Usuario* usuario_;
+	Fecha fecha_;
 	bool activa_;
-	static set<Numero> numeros;
+	Cadena titular_facial_;
 
 	/*Metodos*/
 	void anula_titular()const noexcept;
@@ -113,5 +118,7 @@ private:
 /*Operadores externos*/
 //Operador <.
 bool operator<(const Tarjeta& T1,const Tarjeta& T2)noexcept;
+//Operador ostream.
+ostream& operator <<(ostream& os,const Tarjeta& T);
 
 #endif

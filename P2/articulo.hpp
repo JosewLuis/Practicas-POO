@@ -1,8 +1,8 @@
 #ifndef _ARTICULO_HPP_
 #define _ARTICULO_HPP_
 #include<iostream>
-#include"cadena.cpp"
-#include"fecha.cpp"
+#include"cadena.hpp"
+#include"fecha.hpp"
 
 using namespace std;
 
