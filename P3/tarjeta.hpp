@@ -27,7 +27,7 @@ public:
 	class Incorrecto{
 	public:
 		Incorrecto(const Razon& razon):razon_(razon){}
-		inline Razon razon()const noexcept{return this->razon_;}	
+		inline Razon razon()const noexcept{return this->razon_;}
 	private:
 		/*Atributos*/
 		Razon razon_;
@@ -49,7 +49,7 @@ bool operator <(const Numero& n1,const Numero n2)noexcept;
 /*Clase Trajeta*/
 class Tarjeta{
 public:
-	enum Tipo{Otro,VISA,Mastercard,Maestro,JCB,AmericanExpress};
+	enum Tipo{VISA,Mastercard,Maestro,JCB,AmericanExpress,Otro};
 	typedef set<Numero> Numeros;
 
 	/*Constructores*/
@@ -99,8 +99,8 @@ public:
     inline const bool activa()const noexcept{return this->activa_;}
     //Tipo.
     inline const Tipo tipo()const{return this->tipo_;}
-	//Titular facial
-	inline const Cadena titular_facial()const{return this->titular_facial_;}
+		//Titular facial
+		inline const Cadena titular_facial()const{return this->titular_facial_;}
 
     inline bool activa(bool b=true)noexcept{this->activa_=b; return this->activa_;}
     inline void anula_titular(){this->usuario_=nullptr; activa(false);}

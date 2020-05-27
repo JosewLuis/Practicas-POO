@@ -68,7 +68,7 @@ bool Clave::verifica(const char* texto)const{
 /*Constructores*/
 Usuario::Usuario(const Cadena& id,const Cadena& nombre,const Cadena& apell,const Cadena& direccion,const Clave& clave):id_(id),nombre_(nombre),apell_(apell),
                                                                                                                        direccion_(direccion),contrasena_(clave){
-    //Insertamos y comprobamos que no este en el set.                                                                                                                    
+    //Insertamos y comprobamos que no este en el set.
     pair<unordered_set<Cadena>::iterator,bool>p=usuarios.insert(id);
     if(!p.second){
         throw Id_duplicado(id);
@@ -131,19 +131,18 @@ ostream& operator <<(ostream& os,const Usuario& U){
 void mostrar_carro(ostream& os,const Usuario& U){
     setlocale(LC_ALL,"es_ES");
 
-    os << "Carrito de la compra de ";
-    os << U.id();
-    os << " [Artículos: ";
-    os << U.n_articulos();
-    os << "]" << endl;
+		os << "Carrito de compra de " << U.id() << " [Articulos: ";
+		os << U.n_articulos() << "]" << endl;
 
-    os << "\tCant. Artículo" << endl;
-    os << "===========================================================" << endl;
+		if(U.n_articulos()==0){
+			return;
+		}
 
-    int aux=1;
+		os << " Cant. Articulo" << endl;
+		os << setw(65) << setfill('=') << '\n'  << setfill(' ');
 
-    for(auto i: U.compra()){
-        os << aux << *i.first << endl;
-        aux++;
-    }
+		for (auto const& i:U.compra()){
+		    os << setw(4) << i.second << "   " << *(i.first) << endl;
+		}
+		os << endl;
 }

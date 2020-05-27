@@ -5,22 +5,22 @@
 using namespace std;
 
 /*Asociadores*/
-void Usuario_Pedido::asocia(const Usuario& U,const Pedido& P){
+void Usuario_Pedido::asocia(Usuario& U,Pedido& P){
 	this->UsuarioPedido_[&U].insert(&P);
 	this->PedidoUsuario_[&P]=&U;
 }
 
-void Usuario_Pedido::asocia(const Pedido& P,const Usuario& U){
+void Usuario_Pedido::asocia(Pedido& P,Usuario& U){
 	asocia(U,P);
 }
 
 /*Observadores*/
 //Devuelve pedidos.
-const Usuario_Pedido::Pedidos& Usuario_Pedido::pedidos(const Usuario& U)noexcept{ 
-	return this->UsuarioPedido_.find(&U)->second; 
+const Usuario_Pedido::Pedidos& Usuario_Pedido::pedidos(Usuario& U)const noexcept{
+	return this->UsuarioPedido_.find(&U)->second;
 }
 
 //Devuelve usuario.
-const Usuario* Usuario_Pedido::cliente(const Pedido& P)noexcept{
+const Usuario* Usuario_Pedido::cliente(Pedido& P)const noexcept{
 	return this->PedidoUsuario_.find(&P)->second;
 }

@@ -2,6 +2,7 @@
 #define _PEDIDO_ARTICULO_HPP_
 #include<algorithm>
 #include<map>
+#include<iostream>
 #include"articulo.hpp"
 #include"pedido.hpp"
 
@@ -14,7 +15,7 @@ class Articulo;
 class LineaPedido{
 public:
 	/*Constructores*/
-	explicit inline LineaPedido(double pv,size_t cv):precioVenta_(pv),cantidadVendida_(cv){}
+	explicit inline LineaPedido(double pv,size_t cv=1):precioVenta_(pv),cantidadVendida_(cv){}
 
 	/*Observadores*/
 	//Devuelve precio de venta.
@@ -40,7 +41,7 @@ public:
 /*Clase OrdenaPedidos*/
 class OrdenaPedidos:public std::binary_function<Pedido*,Pedido*,bool> {
 public:
-	bool operator()(const Pedido* P1,const Pedido* P2)const noexcept{return P1->numero()<P2->numero();}
+	bool operator()(const Pedido* P1,const Pedido* P2)const noexcept;
 };
 
 
@@ -49,25 +50,24 @@ class Pedido_Articulo{
 public:
 	/*Contenedores*/
 	typedef map<Articulo*,LineaPedido,OrdenaArticulos> ItemsPedido;
-	typedef map<Pedido*,ItemsPedido,OrdenaPedidos> PedidoArticulo;
 	typedef map<Pedido*,LineaPedido,OrdenaPedidos> Pedidos;
-	typedef map<Articulo*,Pedidos,OrdenaArticulos> ArticuloPedido;
+
 
 	/*Asociadores*/
-	void pedir(const Pedido& P,const Articulo& A,double precio,size_t cant=1);
-	void pedir(const Articulo& A,const Pedido& P,double precio,size_t cant=1);
+	void pedir(Pedido& P,Articulo& A,double precio,size_t cant=1);
+	void pedir(Articulo& A,Pedido& P,double precio,size_t cant=1);
 
 	/*Observadores*/
-	const ItemsPedido& detalle(const Pedido& P)const noexcept;
-	Pedidos ventas(const Articulo& A)const noexcept;
+	const ItemsPedido& detalle(Pedido& P)const noexcept;
+	Pedidos ventas(Articulo& A)const noexcept;
 
 	/*ostream con detalles*/
 	ostream& mostrarDetallePedidos(ostream& os)const noexcept;
 	ostream& mostrarVentasArticulos(ostream& os)const noexcept;
 private:
 	/*Atributos*/
-	PedidoArticulo PedidoArticulo_;
-	ArticuloPedido ArticuloPedido_;
+	map<Pedido*,ItemsPedido,OrdenaPedidos> PedidoArticulo_;
+	map<Articulo*,Pedidos,OrdenaArticulos> ArticuloPedido_;
 };
 
 /*Operadores externos*/

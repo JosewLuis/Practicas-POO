@@ -18,8 +18,8 @@ typedef typename Numero::Razon razon;
 Numero::Numero(const Cadena& numero):numero(numero){
 	Cadena aux{numero};
 
-	auto EsBlanco=[&](char c)->bool{ 
-		return std::isspace(c); 
+	auto EsBlanco=[&](char c)->bool{
+		return std::isspace(c);
 	};
 
 	auto iterator=std::remove_if(aux.begin(),aux.end(),EsBlanco);
@@ -37,7 +37,7 @@ Numero::Numero(const Cadena& numero):numero(numero){
 	if(tam<13 || tam>19){
 		throw Incorrecto(LONGITUD);
 	}
-	
+
 	if(!luhn(aux)){
 		throw Incorrecto(NO_VALIDO);
 	}
@@ -54,8 +54,6 @@ bool operator <(const Numero& n1,const Numero n2)noexcept{
 
 /*Clase Tarjeta*/
 
-typedef typename Tarjeta::Tipo Tipo;
-
 /*Constructores*/
 Tarjeta::Tarjeta(const Numero& numero,Usuario& usuario,const Fecha fecha):numero_(numero),usuario_(&usuario),fecha_(fecha),activa_(true){
 	if(fecha_<Fecha()){
@@ -68,15 +66,15 @@ Tarjeta::Tarjeta(const Numero& numero,Usuario& usuario,const Fecha fecha):numero
 	}
 
 	switch(numero[0]){
-		case '4': this->tipo_=Tipo::VISA;break;
-    	case '5': this->tipo_=Tipo::Mastercard;break;
-	    case '6': this->tipo_=Tipo::Maestro;break;
-	    case '3': 
+			case '4': this->tipo_=Tarjeta::VISA;break;
+    	case '5': this->tipo_=Tarjeta::Mastercard;break;
+	    case '6': this->tipo_=Tarjeta::Maestro;break;
+	    case '3':
 			switch (numero[1]){
-        		case '4' | '7': this->tipo_=Tipo::AmericanExpress;break;
-		        default: this->tipo_=Tipo::JCB;break;
+        		case '4' | '7': this->tipo_=Tarjeta::AmericanExpress;break;
+		        default: this->tipo_=Tarjeta::JCB;break;
         	}
-    	default: this->tipo_=Tipo::Otro;break;		
+    	default: this->tipo_=Tarjeta::Otro;break;
 	}
 
 	Cadena tf{usuario.nombre()+" "+usuario.apellidos()};
@@ -84,10 +82,10 @@ Tarjeta::Tarjeta(const Numero& numero,Usuario& usuario,const Fecha fecha):numero
     for(int i=0;i<tf.length();i++){
         tf[i]=toupper(tf[i]);
 	}
-    
+
     this->titular_facial_=tf;
 
-    usuario_->es_titular_de(*this);	
+    usuario_->es_titular_de(*this);
 }
 
 /*Destructor*/
@@ -95,8 +93,8 @@ Tarjeta::~Tarjeta(){
 	if(this->usuario_!=nullptr){
         const_cast<Usuario*>(this->usuario_)->no_es_titular_de(*this);
 	}
-    
-    this->numeros.erase(this->numero_);	
+
+    this->numeros.erase(this->numero_);
 }
 
 /*Operadores externos*/
@@ -107,26 +105,28 @@ bool operator<(const Tarjeta& T1,const Tarjeta& T2)noexcept{
 
 //Operador ostream.
 ostream& operator <<(ostream& os,const Tarjeta& T){
+		cout << T.tipo() << endl;
     switch (T.tipo()){
-        case Tipo::VISA: os << "VISA";break;
-        case Tipo::Mastercard: os << "Mastercard";break;
-        case Tipo::Maestro: os << "Maestro";break;
-        case Tipo::AmericanExpress: os << "American Expres";break;
-        case Tipo::JCB: os << "JCB";break;
+		    case 0:	os << " VISA ";break;
+				case 1: os << " Mastercard ";break;
+				case 2: os << " Maestro ";break;
+				case 3: os << " JCB	";break;
+				case 4: os << " AmericanExpress ";break;
+				case 5: os << " Otro ";break;
         default: os << "Error, ninguna tarjeta conocida" << endl;
     }
 
-    os << "\n"; 
-	os << T.numero(); 
-	os << "\n"; 
-	os << T.titular_facial();
     os << "\n";
-	os << "Caduca: ";
-	os << setprecision(2);
-	os << ((T.caducidad().mes()<10)?'0':' '); 
-	os << T.caducidad().mes(); 
-	os << "/"; 
-	os << (T.caducidad().anno()%100) << endl;
+		os << T.numero();
+		os << "\n";
+		os << T.titular_facial();
+    os << "\n";
+		os << "Caduca: ";
+		os << setprecision(2);
+		os << ((T.caducidad().mes()<10)?'0':' ');
+		os << T.caducidad().mes();
+		os << "/";
+		os << (T.caducidad().anno()%100) << endl;
 
     return os;
 }

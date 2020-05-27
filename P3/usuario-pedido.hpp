@@ -5,6 +5,9 @@
 #include"usuario.hpp"
 #include"pedido.hpp"
 
+class Pedido;
+class Usuario;
+
 /*usuario-pedido.hpp*/
 using namespace std;
 
@@ -16,18 +19,18 @@ public:
 	typedef map<Pedido*,Usuario*> PedidoUsuario;
 
 	/*Asociadores*/
-	void asocia(const Usuario& U,const Pedido& P);
-	void asocia(const Pedido& P,const Usuario& U);
+	void asocia(Usuario& U,Pedido& P);
+	void asocia(Pedido& P,Usuario& U);
 
 	/*Observadores*/
 	//Devuelve Pedidos.
-	const Pedidos& pedidos(const Usuario& U)noexcept;
+	const Pedidos& pedidos(Usuario& U)const noexcept;
 	//Devuelve usuarios.
-	const Usuario* cliente(const Pedido& P)noexcept;
+	const Usuario* cliente(Pedido& P)const noexcept;
 private:
 	/*Atributos*/
-	UsuarioPedido usuarioPedido_;
-	PedidoUsuario pedidoUsuario_;
+	UsuarioPedido UsuarioPedido_;
+	PedidoUsuario PedidoUsuario_;
 };
 
 #endif

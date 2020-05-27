@@ -11,30 +11,34 @@ using namespace std;
 //Operador ostream.
 ostream& operator<<(ostream& os,const LineaPedido& LP){
 	os << std::fixed << std::setprecision(2);
-	os << lineaPedido.precio_venta();
-	os << " €\t" << lineaPedido.cantidad();
+	os << LP.precio_venta();
+	os << " €\t" << LP.cantidad();
 
 	return os;
 }
 
 /*Clase Pedido_Articulo*/
 
-/*Asociadores*/
-void Pedido_Articulo::pedir(const Pedido& P,const Articulo& A,double precio,size_t cant){
-	PedidoArticulo_[&P].insert(std::make_pair(&A,LineaPedido(precio,cant)));
-  	ArticuloPedido_[&A].insert(std::make_pair(&P,LineaPedido(precio,cant)));
+bool OrdenaPedidos::operator()(const Pedido* P1,const Pedido* P2)const noexcept{
+	return P1->numero()<P2->numero();
 }
 
-void Pedido_Articulo::pedir(const Articulo& A,const Pedido& P,double d,size_t cant){
+/*Asociadores*/
+void Pedido_Articulo::pedir(Pedido& P,Articulo& A,double precio,size_t cant){
+	this->PedidoArticulo_[&P].insert(make_pair(&A,LineaPedido(precio,cant)));
+	this->ArticuloPedido_[&A].insert(make_pair(&P,LineaPedido(precio,cant)));
+}
+
+void Pedido_Articulo::pedir(Articulo& A,Pedido& P,double d,size_t cant){
 	pedir(P,A,d,cant);
 }
 
 /*Observadores*/
-const Pedido_Articulo::ItemsPedido& Pedido_Articulo::detalle(const Pedido& P)const noexcept{
+const Pedido_Articulo::ItemsPedido& Pedido_Articulo::detalle(Pedido& P)const noexcept{
 	return this->PedidoArticulo_.find(&P)->second;
 }
 
-Pedido_Articulo::Pedidos Pedido_Articulo::ventas(const Articulo& A)const noexcept{
+Pedido_Articulo::Pedidos Pedido_Articulo::ventas(Articulo& A)const noexcept{
 	if(this->ArticuloPedido_.find(&A)!=this->ArticuloPedido_.end())
     	return this->ArticuloPedido_.find(&A)->second;
   	else {
@@ -59,8 +63,8 @@ ostream& Pedido_Articulo::mostrarDetallePedidos(ostream& os)const noexcept{
 	os << "TOTAL VENTAS\t" << std::fixed;
 	os << std::setprecision(2);
 	os << total << " €" << std::endl;
-	
-	return o;
+
+	return os;
 }
 
 ostream& Pedido_Articulo::mostrarVentasArticulos(ostream& os)const noexcept{
