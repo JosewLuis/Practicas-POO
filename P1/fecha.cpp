@@ -1,246 +1,282 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <clocale>
+#include <time.h>
+#include <iomanip>
+
 #include "fecha.hpp"
-#include "ctime"
-#include "iostream"
-#include "locale.h"
-#include "iomanip"
 
-/*Fecha.cpp*/
-
-std::time_t tiempo_calendario=std::time(nullptr);
-std::tm* tiempo_descompuesto=std::localtime(&tiempo_calendario);
-int diaH=tiempo_descompuesto->tm_mday;
-int mesH=tiempo_descompuesto->tm_mon+1; 								//tm_mon: 0 (ene)..11 (dic).
-int anoH=tiempo_descompuesto->tm_year+1900; 						//tm_year: a~nos desde 1900.
-
-/*Constructores*/
-//Constructor con 3 elementos.
-Fecha::Fecha(int dia,int mes,int ano):dia_(dia),mes_(mes),ano_(ano){
-	FechaValida();
+/**
+ * Constructor de ningun parametro, a los 3
+ */
+Fecha::Fecha(int dia, int mes, int anno) : dia_{dia}, mes_{mes}, anno_{anno} {
+	fechaValida();
 }
 
-//Constructor const char*.
-Fecha::Fecha(const char* c){
-	if(sscanf(c,"%d/%d/%d",&dia_,&mes_,&ano_)!=3){
-		throw Invalida("Cadena inválida."); 
+/**
+ * Constructor de parametro const char*
+ */
+Fecha::Fecha(const char* fecha) {
+
+	if(sscanf(fecha, "%d/%d/%d", &dia_, &mes_ ,&anno_) != 3)
+		throw Invalida("Cadena fecha introducida no válida");
+
+	fechaValida();
+}
+
+/**
+ * Constructor clase Invalida
+ */
+Fecha::Invalida::Invalida(const char* error) noexcept : error_{error} {}
+
+/**
+ * Validamos si la fecha es correcta
+ */
+void Fecha::fechaValida() {
+
+	time_t rawtime;
+	struct tm* fechaHoy;
+
+	time(&rawtime);
+	fechaHoy = localtime(&rawtime);
+
+	if(dia_  == 0) 	dia_ 	= fechaHoy->tm_mday;
+  	if(mes_  == 0) 	mes_ 	= fechaHoy->tm_mon 	+ 1;
+  	if(anno_ == 0) 	anno_ 	= fechaHoy->tm_year + 1900;
+
+	const int diasMeses[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+ 
+	if(dia_ < 1 || mes_ < 1 || mes_ > 12)
+		throw Invalida("Fecha fuera de rango");
+	if(!fechaEnRango())
+		throw Invalida("Año fuera del rango");
+	if(dia_ > diasMeses[mes_ - 1] && mes_ != 2)
+		throw Invalida("Dia fuera del rango del mes");
+	else{
+		if(anno_ % 4 == 0 && (anno_ % 400 == 0 || anno_ % 100 != 0)){
+			if(dia_ > diasMeses[mes_ - 1] + 1)
+				throw Invalida("Dia fuera del rango del mes");
+		}
+		else
+			if(dia_ > diasMeses[mes_ - 1])
+				throw Invalida("Dia fuera del rango del mes");
 	}
-	FechaValida();
 }
 
-const char* Fecha::cadena()const noexcept{
-	static char* fecha=new char[50];
-	time_t tiempo=time(nullptr);
-	tm* fechaTiempo=localtime(&tiempo);
-	std::locale::global(std::locale(""));
-
-	fechaTiempo->tm_mday=this->dia_;
-	fechaTiempo->tm_mon=this->mes_-1;
-	fechaTiempo->tm_year=this->ano_-1900;
-
-	mktime(fechaTiempo);
-	strftime(fecha,50,"%A %e de %B de %Y",fechaTiempo);
-
-	return fecha;
+/**
+ * Comprobar rango de los años de la fecha
+ */
+bool Fecha::fechaEnRango() const noexcept{
+	return (this->anno_ >= AnnoMinimo && this->anno_ <= AnnoMaximo); 
 }
 
+/**
+ * Suma con asignacion
+ */
+Fecha& Fecha::operator += (int dia){
 
-/*Operadores internos*/
-//Operador +=.
-Fecha& Fecha::operator+=(int dia){
-	time_t tiempo=time(nullptr);
-	tm* fechaS=localtime(&tiempo);
+	time_t rawtime;
+	struct tm* fechaSumada;
 
-	fechaS->tm_mday=this->dia_+dia;
-	fechaS->tm_mon=this->mes_-1;
-	fechaS->tm_year=this->ano_-1900;
-	fechaS->tm_hour=12;
+	time ( &rawtime );
+	fechaSumada = localtime ( &rawtime );
+	fechaSumada->tm_mday	= (dia_		+ dia);
+	fechaSumada->tm_mon 	= (mes_		- 1);
+	fechaSumada->tm_year 	= (anno_	- 1900);
 
-	mktime(fechaS);
-	this->dia_=fechaS->tm_mday;
-	this->mes_=fechaS->tm_mon+1;
-	this->ano_=fechaS->tm_year+1900;
+	mktime(fechaSumada);
 
-	FechaValida();
+	dia_ 	= fechaSumada->tm_mday;
+	mes_ 	= fechaSumada->tm_mon 	+ 1;
+	anno_ 	= fechaSumada->tm_year 	+ 1900;
+	
+	if(!fechaEnRango()) throw Invalida("Año fuera del rango");
 
 	return *this;
 }
 
-//Operador -=.
-Fecha& Fecha::operator-=(int dia){
-	return *this+=-dia;
-}
+/**
+ * Pre incremento
+ */
+Fecha& Fecha::operator ++ (){  return (*this += 1); }
 
-//Operador +.
-Fecha Fecha::operator+(int dia)const{
-	Fecha f=*this;
-	f+=dia; 
+/**
+ * Post incremento
+ */
+Fecha Fecha::operator ++ (int){
 
-	return f;
-}
+	Fecha aux = *this;
 
-//Operador -.
-Fecha Fecha::operator-(int dia)const{
-	Fecha f=*this;
-	f-=dia; 
-
-	return f;
-}
-
-//Operador preincremento ++.
-Fecha& Fecha::operator++(){
-	return *this+=1;
-}
-
-//Operador preincremento --.
-Fecha& Fecha::operator--(){
-	return *this-=1;
-}
-
-//Operador postincremento ++.
-Fecha Fecha::operator++(int dia){
-	Fecha aux(*this);
-	*this+=1;
+	*this += 1;
 
 	return aux;
 }
 
-//Operador postincremento --.
-Fecha Fecha::operator--(int dia){
-	Fecha aux(*this);
-	*this-=1;
+/**
+ * Pre decremento
+ */
+Fecha& Fecha::operator -- (){ return (*this += -1); }
+
+/**
+ * Post decremento
+ */
+Fecha Fecha::operator -- (int){
+
+	Fecha aux = *this;
+
+	*this += -1;
 
 	return aux;
 }
 
+/**
+ * Suma de Fecha + entero
+ */
+Fecha Fecha::operator + (int dia) const{
 
-/*Metodos privados*/
-//Fecha Valida.
-void Fecha::FechaValida(){
-	std::locale::global(std::locale());
-	//Asignar valores por defecto.
-	if(this->dia_==0){
-		this->dia_=diaH;
+	Fecha fechaAux = *this;
+
+	fechaAux += dia; 
+
+	return fechaAux;
+}
+
+/**
+ * Resta de Fecha - entero
+ */
+Fecha Fecha::operator - (int dia) const{
+
+	Fecha fechaAux = *this;
+
+	fechaAux += -dia; 
+
+	return fechaAux;
+}
+
+/**
+ * Resta de fecha - entero
+ */
+Fecha& Fecha::operator -= (int dia){ return (*this += -dia); }
+
+/**
+ * Imprimir fecha 
+ */
+const char* Fecha::cadena() const noexcept{
+
+	static char fecha[50];
+
+	time_t rawtime;
+	struct tm* fechaTiempo;
+
+	time ( &rawtime );
+	fechaTiempo = localtime ( &rawtime );
+
+	std::locale::global(std::locale(""));
+
+	fechaTiempo->tm_mday    = dia_;
+	fechaTiempo->tm_mon     = mes_ - 1;
+	fechaTiempo->tm_year    = anno_ - 1900;
+
+	mktime(fechaTiempo);
+
+	strftime(fecha, 50, "%A %e de %B de %Y", fechaTiempo);
+
+	return fecha;
+}
+
+/**
+ * Operador << inserccion
+ */
+std::ostream& operator << (std::ostream& o, const Fecha& fecha) noexcept{
+
+	o << fecha.cadena();
+
+	return o;
+}
+
+/**
+ * Operador >> extraccion
+ */
+std::istream& operator >> (std::istream& i, Fecha& fecha) {
+
+	char f[11];
+
+	i >> std::setw(11) >> f;
+
+	try{
+		fecha = Fecha(f);
 	}
-	if(this->mes_==0){
-		this->mes_=mesH;
-	}
-	if(this->ano_==0){
-		this->ano_=anoH;
+	catch(const Fecha::Invalida& e){
+		i.setstate(std::ios_base::failbit);
+		throw;
 	}
 
-	//Comprobar que la Fecha sea valida.
-	//Comprobamos que no se sale del rango de anos permitodo.
-	if(this->ano_>Fecha::AnnoMaximo){
-		throw Invalida("Año mayor que 2037.\n");
-	}
-	if(this->ano_<Fecha::AnnoMinimo){
-		throw Invalida("Año menor que 1902.\n");
-	}
+	return i;
+}
 
-	switch(this->mes_){
-		//Dias 30. 
-		case 4:
-		case 6:
-		case 9:
-		case 11:
-			if(this->dia_>30 || this->dia_<0){
-				throw Invalida("Día introducido inválido.\n");
-			}break;
-		case 1:
-		case 3:
-		case 5:
-		case 7:
-		case 8:
-		case 10:
-		case 12:
-			if(this->dia_>31 || this->dia_<0){
-				throw Invalida("Día introducido inválido.\n");
-			}break;
-		case 2:
-			//Comprobamos si el ano es bisiesto.
-			if(this->ano_%4==0 && (this->ano_%400==0 || this->ano_%100!=0)){
-				if(this->dia_>29 || this->dia_<0){
-					throw Invalida("Día introducido inválido.\n");
+/**
+ * Operador de comparacion de fecha
+ */
+bool operator < (const Fecha& fecha, const Fecha& fecha2) noexcept{ 
+
+	if(fecha.anno() < fecha2.anno())
+		return true;
+	else{
+		if(fecha.anno() > fecha2.anno())
+			return false;
+		else{
+			if(fecha.mes() < fecha2.mes())
+				return true;
+			else{
+				if(fecha.mes() > fecha2.mes())
+					return false;
+				else{
+					if(fecha.dia() < fecha2.dia())
+						return true;
+					else{
+						if(fecha.dia() > fecha2.dia())
+							return false;
+					}
 				}
-			}else{
-				if(this->dia_>28 || this->dia_<0){
-					throw Invalida("Día introducido inválido.\n");
-				}
-			}break;
-		default:
-			throw Invalida("Mes introducido inválido.\n");
+			}
+		}
 	}
-}
-
-/*Operadores externos*/
-//Operador ==.
-bool operator==(const Fecha& f1,const Fecha& f2)noexcept{
-	//Comparamos ano.
-	if(f1.anno()!=f2.anno()){
-		return false;
-	}
-	if(f1.mes()!=f2.mes()){
-		return false;
-	}
-	if(f1.dia()!=f2.dia()){
-		return false;
-	}
-	return true;
-}
-
-//Operador !=.
-bool operator!=(const Fecha& f1,const Fecha& f2)noexcept{
-	return !(f1==f2);
-}
-
-//Operador <.
-bool operator<(const Fecha& f1,const Fecha& f2)noexcept{
-	if(f1.anno()<f2.anno()){
-		return true;
-	}
-	if(f1.anno()==f2.anno() && f1.mes()<f2.mes()){
-		return true;
-	}
-	if(f1.anno()==f2.anno() && f1.mes()==f2.mes() && f1.dia()<f2.dia()){
-		return true;
-	}
+	
 	return false;
 }
 
-//Operador <=.
-bool operator<=(const Fecha& f1,const Fecha& f2)noexcept{
-	return (f1<f2 || f1==f2);
+/**
+ * Operador de comparacion de fecha
+ */
+bool operator == (const Fecha& fecha, const Fecha& fecha2) noexcept{
+	return (fecha2.anno() == fecha.anno() && fecha2.mes() == fecha.mes() && fecha2.dia() == fecha.dia());
 }
 
-//Operador >.
-bool operator>(const Fecha& f1,const Fecha& f2)noexcept{
-	return !(f1<=f2);
+/**
+ * Operador de comparacion de fecha
+ */
+bool operator > (const Fecha& fecha, const Fecha& fecha2) noexcept{
+	return fecha2 < fecha;
 }
 
-//Operador >=.
-bool operator>=(const Fecha& f1,const Fecha& f2)noexcept{
-	return !(f1<f2);
+/**
+ * Operador de comparacion de fecha
+ */
+bool operator <= (const Fecha& fecha, const Fecha& fecha2) noexcept{
+	return !(fecha2 < fecha);
 }
 
-//Operador de extraccion.
-ostream& operator<<(ostream& os,const Fecha& f)noexcept{
-	os << f.cadena();
-	return os;
+/**
+ * Operador de comparacion de fecha
+ */
+bool operator >= (const Fecha& fecha, const Fecha& fecha2) noexcept{
+	return !(fecha < fecha2);
 }
 
-//Operador de inserccion.
-istream& operator>>(istream& is,Fecha& f){
-	//Tamano correcto de las entradas.
-	char fecha[11];
-
-	is >> std::setw(11) >> fecha;
-
-	try{
-		f=Fecha(fecha);
-	}
-	catch(Fecha::Invalida& e){
-		is.setstate(std::ios_base::failbit);
-		throw e;
-	}
-
-	return is;
+/**
+ * Operador de comparacion de fecha
+ */
+bool operator != (const Fecha& fecha, const Fecha& fecha2) noexcept{
+	return !(fecha == fecha2);
 }

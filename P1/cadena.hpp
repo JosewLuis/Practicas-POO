@@ -1,98 +1,96 @@
-#ifndef _CADENA_HPP_
-#define _CADENA_HPP_
-#include "iostream"
-#include "functional"
-#include "stdexcept"
+#ifndef CADENA_HPP_
+#define CADENA_HPP_
 
-using namespace std;
-
-/*Cadena.hpp*/
+#include <iostream>
+#include <functional>
 
 class Cadena{
-public:
-	/*Constructores*/
-	//Constructor con 2 elementos.
-	explicit Cadena(size_t tam=0,char s=' ');
-	//Constructor de copia.
-	Cadena(const Cadena& c);
-	//Constructor de movimiento.
-	Cadena(Cadena&& c);
-	//Constructor con const char*.
-	Cadena(const char* c);
-	//Destructor.
-	~Cadena();
 
-	/*Operadores internos*/
-	//Operador +=.
-	Cadena& operator+=(const Cadena& c)noexcept;
-	//Operador =.
-	Cadena& operator=(const Cadena& c)noexcept;
-	Cadena& operator=( Cadena&& c)noexcept;
-	Cadena& operator=(const char* c)noexcept;
-	//Operador [] const.
-	const char operator[](int i)const noexcept;
-	//Operador [] no const.
-	char& operator[](int i)noexcept;
+	public:
+		// Constructores
+		Cadena(const Cadena&) 					noexcept;
+		Cadena(Cadena&&)						noexcept;
+		Cadena(const char*) 					noexcept;
+		explicit Cadena(size_t = 0, char = ' ') noexcept;
+		
+		// Destructor
+		~Cadena();
 
-	/*Observadores*/
-	//Devuelve Cadena.
-	inline char* c_str()const noexcept{return this->s_;}
-	//Devuelve tam
-	inline size_t length()const noexcept{return this->tam_;}
-	//Devuelve iesimo elemento con excepciones.
-	const char at(int i)const;
-	//Devuelve iesimo elemento con excepciones.
-	char& at(int i);
-	//Metodo substr.
-	Cadena substr(int ind,int tam)const;
+		// Sobrecarga de operadores 
+		// Operadores internos
+		Cadena& 		operator 	= 	(const Cadena&) noexcept;
+		Cadena& 		operator 	= 	(const char*) 	noexcept;
+		Cadena&			operator 	=	(Cadena&&)		noexcept;
+		Cadena&			operator 	+= 	(const Cadena&) noexcept;
+		const char		operator	[]	(size_t) const 	noexcept;
+		char&			operator	[]	(size_t) 		noexcept;
 
-	/*Iteradores*/
-	//No constantes.
-	typedef char* iterator;
-	typedef std::reverse_iterator<iterator> reverse_iterator;
-	//Constantes.
-	typedef const char* const_iterator;
-	typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
-	//Funciones de los iteradores.
-	//No constantes.
-	iterator begin();
-	iterator end();
-	reverse_iterator rbegin();
-	reverse_iterator rend();
-	//Constantes.
-	const_iterator begin()const;
-	const_iterator end()const;
-	const_iterator cbegin()const;
-	const_iterator cend()const;
-	const_reverse_iterator rbegin()const;
-	const_reverse_iterator rend()const;
-	const_reverse_iterator crbegin()const;
-	const_reverse_iterator crend()const;
-private:
-	//Atributos.
-	size_t tam_;
-	char *s_;
+		// Metodos
+		inline size_t 	length() const noexcept { return tam_; }
+		char& 			at(size_t);
+		const char		at(size_t) const;
+		Cadena 			substr(size_t, size_t) const;
+		const char* 	c_str() const noexcept;
+
+		// Iteradores
+		// No-const
+		typedef char* iterator;
+		typedef std::reverse_iterator<iterator> reverse_iterator;
+
+		// Const
+		typedef const char* const_iterator;
+		typedef std::reverse_iterator<const_iterator> const_reverse_iterator;
+
+		// Funciones de Iteradores
+		// No-const
+		iterator 				begin();
+		iterator 				end();
+		reverse_iterator 		rbegin();
+		reverse_iterator 		rend();
+
+		// Const
+		const_iterator 			begin() 	const;
+		const_iterator 			end() 		const;
+		const_iterator 			cbegin() 	const;
+		const_iterator 			cend() 		const;
+		
+		const_reverse_iterator 	rbegin() 	const;
+		const_reverse_iterator 	rend() 		const;
+		const_reverse_iterator 	crbegin() 	const;
+		const_reverse_iterator 	crend() 	const;
+		
+	private:
+		// Atributos
+		char* s_;
+		size_t tam_;
+
 };
 
-/*Operadores externos*/
-//Concatenacion.
-Cadena operator+(const Cadena& c1,const Cadena& c2)noexcept;
-//Operador ==.
-bool operator==(const Cadena& c1,const Cadena& c2)noexcept;
-//Operador !=.
-bool operator!=(const Cadena& c1,const Cadena& c2)noexcept;
-//Operador <.
-bool operator<(const Cadena& c1,const Cadena& c2)noexcept;
-//Operador <=.
-bool operator<=(const Cadena& c1,const Cadena& c2)noexcept;
-//Operador >.
-bool operator>(const Cadena& c1,const Cadena& c2)noexcept;
-//Operador >=.
-bool operator>=(const Cadena& c1,const Cadena& c2)noexcept;
-//Operador de extraccion.
-ostream& operator<<(ostream& os,const Cadena& c)noexcept;
-//Operador de inserccion.
-istream& operator>>(istream& is,Cadena& c)noexcept;
+// Operadores externos
+// Concatenacion
+Cadena 	operator +	(const Cadena&, const Cadena&) noexcept;
 
+//Comparacion
+bool operator >	 (const Cadena&, const Cadena&) noexcept;
+bool operator <	 (const Cadena&, const Cadena&) noexcept;
+bool operator <= (const Cadena&, const Cadena&) noexcept;
+bool operator >= (const Cadena&, const Cadena&) noexcept;
+bool operator == (const Cadena&, const Cadena&) noexcept;
+bool operator != (const Cadena&, const Cadena&) noexcept;
+
+std::ostream& operator << (std::ostream&, const Cadena&) noexcept;
+std::istream& operator >> (std::istream&, Cadena&);
+
+// Para P2 y ss.
+// Especialización de la plantilla hash<T>para definir la
+// función hash a utilizar con contenedores desordenados de
+// Cadena, unordered_[set|map|multiset|multimap].
+namespace std {
+	template <> struct hash<Cadena> {
+		size_t operator()(const Cadena& cad) const { // conversión const char* ->string
+			return hash<string>{}(cad.c_str());
+		}
+	};
+}
 
 #endif
