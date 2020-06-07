@@ -1,61 +1,51 @@
-#include"pedido.hpp"
-#include<iostream>
-#include<unistd.h>
-#include<string.h>
-#include<stdlib.h>
-#include<iomanip>
+#include <iostream>
+#include <iomanip>
 
-/*pedido.cpp*/
-using namespace std;
+#include "pedido.hpp"
+#include "pedido-articulo.hpp"
+#include "usuario-pedido.hpp"
 
-/*Inicializamos la variable estatica*/
-int Pedido::numPedido_=0;
+int Pedido::total_ = 0;
 
-/*Constructores*/
-Pedido::Pedido(Usuario_Pedido& up,Pedido_Articulo& pa,Usuario& u,const Tarjeta& t,const Fecha& f):fecha_{f},tarjeta_{&t}{
-	if(u.compra().empty()){
-		throw Pedido::Vacio(&u);
-	}
-	if(t.titular()!=&u){
-		throw Pedido::Impostor(&u);
-	}
-	if(t.caducidad()<f){
-		throw Tarjeta::Caducada(t.caducidad());
-	}
-	if(!t.activa()){
-		throw Tarjeta::Desactivada();
-	}
+Pedido::Pedido(Usuario_Pedido& usPedido, Pedido_Articulo& peArticulo, Usuario& usuario, const Tarjeta& tarjeta, const Fecha& fecha) 
+: fecha_{fecha}, tarjeta_{&tarjeta} {
 
-	//Primero comprobar que haya stock para comprarlo todo.
-	for(auto i=u.compra().begin();i!=u.compra().end();i++){
-		if(i->first->stock()<i->second){
-			const_cast<Usuario::Articulos&>(u.compra()).clear();
+	if(usuario.compra().empty())        throw Pedido::Vacio(&usuario);
+	if(tarjeta.titular() != &usuario)   throw Pedido::Impostor(&usuario);
+	if(tarjeta.caducidad() < fecha)     throw Tarjeta::Caducada(tarjeta.caducidad());
+	if(tarjeta.activa() == false )		throw Tarjeta::Desactivada();
+
+	for(auto i = usuario.compra().begin(); i != usuario.compra().end(); ++i){
+		if( i->second > i->first->stock()){
+			const_cast<Usuario::Articulos&>(usuario.compra()).clear();
 			throw Pedido::SinStock(i->first);
 		}
 	}
 
-	up.asocia(*this,u);
-	this->total_=0;
+	usPedido.asocia(*this, usuario);
+	importe_ = 0;
 
-	for(auto i=u.compra().begin();i!=u.compra().end();i++){
-		this->total_+=i->second*i->first->precio();
-		pa.pedir(*i->first,*this,i->first->precio(),i->second);
-		i->first->stock()-=i->second;
+	for( auto i = usuario.compra().begin(); i != usuario.compra().end(); ++i){
+		importe_ += i->second * i->first->precio();
+		peArticulo.pedir(*i->first, *this, i->first->precio(), i->second);
+		i->first->stock() -= i->second;
 	}
 
-	this->numero_=++this->numPedido_;
-	const_cast<Usuario::Articulos&>(u.compra()).clear();
+	nPedido_ = ++total_;
+	const_cast<Usuario::Articulos&>(usuario.compra()).clear();
+
 }
 
-/*Operadores externos*/
-//Operador ostream.
-ostream& operator<<(ostream& os,const Pedido& P)noexcept{
-	os << "Núm. pedido: " << P.numero() << std::endl;
-   	os << "Fecha:       " << P.fecha() << std::endl;
-   	os << "Pagado con:  " << P.tarjeta()->tipo();
-   	os << " n.º: " << P.tarjeta()->numero() << std::endl;
-   	os << "Importe:     ";
-	os << std::fixed << std::setprecision(2);
-	os << P.total() << " €" << std::endl;
-	return os;
+std::ostream& operator << (std::ostream& o, const Pedido& pedido) {
+
+	o 	<< "Núm. pedido: " 	<< pedido.numero() 				<< std::endl
+    	<< "Fecha:       " 	<< pedido.fecha() 				<< std::endl
+    	<< "Pagado con:  " 	<< pedido.tarjeta()->tipo()
+    	<< " n.º: " 		<< pedido.tarjeta()->numero() 	<< std::endl
+    	<< "Importe:     "  
+		<< std::fixed		<< std::setprecision(2) 							
+		<< pedido.total()	<< " €" 						<< std::endl;
+
+  return o;
+
 }
