@@ -1,36 +1,31 @@
-#ifndef _USUARIO_PEDIDO_HPP_
-#define _USUARIO_PEDIDO_HPP_
-#include<map>
-#include<set>
-#include"usuario.hpp"
-#include"pedido.hpp"
+#ifndef USUARIO_PEDIDO_HPP
+#define USUARIO_PEDIDO_HPP
+
+#include <map>
+#include <set>
+
+#include "usuario.hpp"
+#include "pedido.hpp"
 
 class Pedido;
 class Usuario;
 
-/*usuario-pedido.hpp*/
-using namespace std;
+class Usuario_Pedido {
 
-class Usuario_Pedido{
-public:
-	/*Declaracion de contenedores*/
-	typedef set<Pedido*> Pedidos;
-	typedef map<Usuario*,Pedidos> UsuarioPedido;
-	typedef map<Pedido*,Usuario*> PedidoUsuario;
+	public:
+		typedef std::set<Pedido*>  Pedidos;
+		typedef std::map<Usuario*, Pedidos>     UsuarioPedido;
+		typedef std::map<Pedido*,  Usuario*>    PedidoUsuario;
 
-	/*Asociadores*/
-	void asocia(Usuario& U,Pedido& P);
-	void asocia(Pedido& P,Usuario& U);
+		void asocia(Usuario&, Pedido&);
+		void asocia(Pedido&,  Usuario&);
 
-	/*Observadores*/
-	//Devuelve Pedidos.
-	const Pedidos& pedidos(Usuario& U)const noexcept;
-	//Devuelve usuarios.
-	const Usuario* cliente(Pedido& P)const noexcept;
-private:
-	/*Atributos*/
-	UsuarioPedido UsuarioPedido_;
-	PedidoUsuario PedidoUsuario_;
+		const Pedidos& pedidos(Usuario&);
+		const Usuario* cliente(Pedido&);
+
+	private:
+		UsuarioPedido usuarioPedido_;
+		PedidoUsuario pedidoUsuario_;
 };
 
 #endif

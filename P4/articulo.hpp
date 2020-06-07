@@ -1,134 +1,110 @@
-#ifndef _ARTICULO_HPP_
-#define _ARTICULO_HPP_
-#include<iostream>
-#include"cadena.hpp"
-#include"fecha.hpp"
+#ifndef ARTICULO_HPP
+#define ARTICULO_HPP
 
-using namespace std;
+#include <iostream>
+#include <set>
 
-/*Clase Autor*/
+#include "cadena.hpp"
+#include "fecha.hpp"
 
-class Autor{
-public:
-	/*Constructor*/
-	Autor(const Cadena& nombre,const Cadena& apellido,const Cadena& direccion);
+class Autor {
+	public:
+		Autor(const Cadena&, const Cadena&, const Cadena&);
 
-	/*Observadores*/
-	//Nombre.
-	inline Cadena nombre()const noexcept{ return this->nombre_; 	}
-	//Apellidos.
-	inline Cadena apellidos() const noexcept { return this->apellido_;  }
-	//Direccion.
-	inline Cadena direccion() 	const noexcept { return this->direccion_; }
+		inline Cadena nombre() 		const noexcept { return nombre_; 	}
+		inline Cadena apellidos() 	const noexcept { return apellido_;  }
+		inline Cadena direccion() 	const noexcept { return direccion_; }
 
-private:
-	/*Atributos*/
-	Cadena nombre_,apellido_,direccion_;
+	private:
+		Cadena nombre_;
+		Cadena apellido_;
+		Cadena direccion_;
 };
 
+class Articulo {
 
-/*Clase Articulo*/
+	public:
 
-class Articulo{
-public:
-	/*Constructores*/
-	//Constructor de 5 parametros.
-	Articulo(const Autor& autores,const Cadena& ref,const Cadena& titulo,const Fecha& publ,double precio);
+		typedef std::set<Autor*> Autores;
 
-	typedef std::set<Autor*> Autores;
+		// Constructor
+		explicit Articulo(const Autores&, const Cadena&, const Cadena&, const Fecha&, double);
 
-	/*Observadores*/
-	//Referencia.
-	inline const Cadena& referencia()const noexcept{return this->ref_;}
-	//Titulo.
-	inline const Cadena& titulo()const noexcept{return this->titulo_;}
-	//Fecha.
-	inline const Fecha& f_publi()const noexcept{return this->public_;}
-	//Precio.
-	inline double precio()const noexcept{return this->precio_;}
-	//Ref a Precio.
-	inline double& precio()noexcept{return this->precio_;}
-	//Ejemplares.
-	inline unsigned stock()const noexcept{return this->ejemplares_;}
-	//Ref a Ejemplares.
-	inline unsigned& stock()noexcept{return this->ejemplares_;}
+		virtual ~Articulo(){}
 
-	/*Metodo virtual*/
-	virtual void impresion_especifica(ostream& os)const=0;
-private:
-	/*Atributos*/
-	Cadena ref_,titulo_;
-	Fecha public_;
-	double precio_;
-	const Autores autores_;
+		class Autores_vacios{};
+
+		// Metodos
+		inline const 	Cadena&		referencia() const 	noexcept { return ref_; 	}
+		inline const 	Cadena&		titulo()	 const 	noexcept { return titulo_;	}
+		inline const 	Fecha&		f_publi()	 const 	noexcept { return fecha_; 	}
+		inline double 				precio()	 const 	noexcept { return precio_; 	}
+		inline double& 				precio() 			noexcept { return precio_; 	}
+		inline const 	Autores&	autores() 	 const 			 { return autores_; }
+
+		virtual void impresion_especifica(std::ostream&) const = 0;
+
+	private:
+		Cadena 	ref_;
+		Cadena 	titulo_;
+		Fecha	fecha_;
+		double	precio_;
+		const 	Autores autores_;
+
 };
 
+class ArticuloAlmacenable: public Articulo {
+	public:
+		ArticuloAlmacenable(const Autores&, const Cadena&, const Cadena&, const Fecha&, double, size_t = 0);
 
-/*Operadores externos*/
-//Operador ostream.
-ostream& operator<<(ostream& os, const Articulo& A)noexcept;
+		inline size_t& 	stock() 		{ return stock_; }
+		inline size_t 	stock() const 	{ return stock_; }
 
-/*Clase ArticuloAlmacenable*/
-
-class ArticuloAlmacenable:public Articulo{
-public:
-	/*Constructor*/
-	ArticuloAlmacenable(const Autores& autores,const Cadena& ref,const Cadena& titulo,const Fecha& publ,double precio,size_t stock=0);
-
-	/*Observadores*/
-	inline size_t& stock(){ return this->stock_; }
-	inline size_t stock()const{ return this->stock_; }
-protected:
-	size_t stock_;
+	protected:
+		size_t stock_;
 };
 
+class Libro: public ArticuloAlmacenable {
 
-/*Clase Libro*/
-class Libro:public ArticuloAlmacenable{
-public:
-	/*Costructor*/
-	Libro(const Autores& autores,const Cadena& ref,const Cadena& titulo,const Fecha& publ,double precio,size_t pag,size_t stock=0);
+	public:
+		Libro(const Autores&, const Cadena&, const Cadena&, const Fecha&, double, unsigned, unsigned = 0);
 
-	/*Observador*/
-	inline size_t n_pag()const{ return this->pag_; }
+		inline unsigned n_pag() const { return pag_; }
 
-	/*Metodo Virtual*/
-	void impresion_especifica(ostream& os)const;
-private:
-	const size_t pag_;
+		void impresion_especifica(std::ostream&) const;
+
+	private:
+		const unsigned pag_;
 };
 
+class Cederron: public ArticuloAlmacenable {
 
-/*Cederron*/
+	public:
+		//Constructor
+		Cederron(const Autores&, const Cadena&, const Cadena&, const Fecha&, double, unsigned, unsigned = 0);
 
-class Cederron:public ArticuloAlmacenable{
-public:
-	/*Constructor*/
-	Cederron(const Autores& autores,const Cadena& ref,const Cadena& titulo,const Fecha& publ,double precio,size_t pag,size_t stock=0);
+		inline unsigned tam() const { return tam_; }
 
-	/*Observador*/
-	inline size_t tam()const{ return this->tam_; }
+		void impresion_especifica(std::ostream&) const;
 
-	/*Metodo Virtual*/
-	void impresion_especifica(ostream& os)const;
-private:
-	size_t tam_;
+	private:
+		unsigned tam_;
 };
 
-/*LibroDigital*/
+class LibroDigital: public Articulo {
 
-class LibroDigital:public Articulo{
-public:
-	/*Constructor*/
-	LibroDigital(const Autores& autores,const Cadena& ref,const Cadena& titulo,const Fecha& publ,double precio,const Fecha& fechaExp);
+	public:
+		LibroDigital(const Autores&, const Cadena&, const Cadena&, const Fecha&, double, const Fecha&);
 
-	/*Observador*/
-	inline const Fecha& f_expir()const{ return this->fechaExp_; }
+		//Observador
+		inline const Fecha& f_expir() const { return fechaExp_; }
 
-	/*Metodo Virtual*/
-	void impresion_especifica(ostream& os)const;
-private:
-	const Fecha fechaExp_;
-}
+		void impresion_especifica(std::ostream& o) const;
+
+	private:
+		const Fecha fechaExp_;
+};
+
+std::ostream& operator << (std::ostream&, const Articulo&);
 
 #endif

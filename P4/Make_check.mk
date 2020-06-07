@@ -2,12 +2,12 @@
 # Comprobaciones de código para P4
 # ©2015 Pedro Delgado, para POO
 # 2017 - Simplificación - Gerardo
-# 2020 - usuario-pedido.cpp (no hpp) - Gerardo
+#
 
 # Directorio donde está el código compartido del DSL
 DIR=../dsl-comprobaciones/
 
-# Obligatorio Clang, versión 3.9 al menos.
+# Obligatorio Clang, versión 3.9 al menos
 CXX         := clang++
 CPPFLAGS    := -I${DIR} $(shell llvm-config --cppflags)
 CXXFLAGS    := -std=c++14
@@ -33,16 +33,18 @@ all: $(EXES)
 
 ${EXES}: $(OBJECTS)
 	@echo "(LINK) catalogo_check.o"
-	$(CXX) -o $@ $^ $(CLANGLIBS) $(LLVMLDFLAGS)
+	@$(CXX) -o $@ $^ $(CLANGLIBS) $(LLVMLDFLAGS)
 
 catalogo_check.o: $(COMMONHDRS)
 
-check check_catalogo: ${EXES}
+check_catalogo: ${EXES}
 	@echo Verificando los fuentes ...
-	./${EXES} -extra-arg-before="-I../P1" -extra-arg="-std=c++14" \
+	@./${EXES} -extra-arg-before="-I../P1" -extra-arg="-std=c++14" \
 		articulo.cpp usuario.cpp tarjeta.cpp pedido.cpp \
-		pedido-articulo.cpp usuario-pedido.cpp -- 2> /dev/null
+		pedido-articulo.cpp usuario-pedido.hpp -- 2> /dev/null
+
+check: check_catalogo
 
 clean:
 	@echo "Limpiando."
-	@${RM} ${RMFLAGS} $(EXES) $(OBJECTS)
+	@${RM} $(EXES) $(OBJECTS)

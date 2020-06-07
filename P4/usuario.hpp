@@ -1,116 +1,100 @@
-#ifndef _USUARIO_HPP_
-#define _USUARIO_HPP_
-#include"unistd.h"
-#include"articulo.hpp"
-#include"tarjeta.hpp"
-#include"cadena.hpp"
-#include<map>
-#include<utility>
-#include<unordered_map>
-#include<unordered_set>
-#include<random>
+#ifndef USUARIO_HPP
+#define USUARIO_HPP
 
-using namespace std;
+#include <unordered_set>
+#include <map>
+#include <unordered_map>
+#include <iostream>
 
-class Tarjeta;
+#include "cadena.hpp"
+#include "articulo.hpp"
+#include "tarjeta.hpp"
+
 class Numero;
+class Tarjeta;
 
-/*usuario.cpp*/
-
-//Clase Clave.
-class Clave{
-public:
-	/*Constructores*/
-	//Constructor.
-	Clave(const char* texto);
-	enum Razon{CORTA,ERROR_CRYPT};
-
-	/*Clase Incorrecta*/
-	class Incorrecta{
+class Clave {
 	public:
-		Incorrecta(Razon razon):razon_(razon){}
-		inline Razon razon()const noexcept{return this->razon_;}
+		enum Razon{CORTA, ERROR_CRYPT};
+		// Constructor
+		Clave(const char*);
+
+		class Incorrecta {
+			public:
+				Incorrecta(const Razon);
+				inline Razon razon() const noexcept { return razon_; }
+			private:
+				Razon razon_;
+		};
+
+		// Metodos
+		inline const Cadena& clave() const 	noexcept { return clave_; }
+		bool verifica(const Cadena&) const	noexcept;
 	private:
-		/*Atributos*/
-		Razon razon_;
-	};
-
-	/*Observadores*/
-	//Devuelve Cadena.
-	inline Cadena clave()const noexcept{return this->cifrada_;}
-	//Verifica.
-	bool verifica(const char* texto)const;
-private:
-	/*Atributos*/
-	Cadena cifrada_;
+		//const Cadena cifrar(const Cadena&) const;
+		Cadena clave_;
 };
 
+class Usuario {
 
-//Clase Usuario.
-class Usuario{
-public:
-	/*Tipo para la Clase*/
-	typedef map<Numero,Tarjeta*> Tarjetas;
-	typedef	unordered_map<Articulo*,unsigned int> Articulos;
+	public:
+		// Constructor
+		explicit Usuario(const Cadena&, const Cadena&, const Cadena&, const Cadena&, const Clave&);
 
-	/*Constructores*/
-	explicit Usuario(const Cadena& id,const Cadena& nombre,const Cadena& apell,const Cadena& direccion,const Clave& clave);
-	Usuario(const Usuario& U)=delete;
-	Usuario& operator=(const Usuario& U)=delete;
+		// Eliminar la copia de usuarios
+		Usuario(const Usuario&) 			= delete;
+		Usuario(Usuario&) 					= delete;
+		void operator = (const Usuario&) 	= delete;
+		void operator = (Usuario&) 			= delete;
 
-	/*Destructor*/
-	~Usuario();
+		// Destructor
+		~Usuario();
 
-	/*Clase Id_duplicado*/
-	class Id_duplicado{
-    public:
-        Id_duplicado(const Cadena& c):id(c){}
-        Cadena idd()const noexcept{return this->id;}
-    private:
-        Cadena id;
-    };
+		friend std::ostream& operator << (std::ostream&, const Usuario&);
 
-    /*Metodos asociativos*/
-    //Asocia tarjeta.
-    void es_titular_de(const Tarjeta& t)noexcept;
-    //Desasocia.
-    void no_es_titular_de(const Tarjeta& t)noexcept;
-    //Asocia articulo.
-    void compra(const Articulo& a,int cantidad=1)noexcept;
+		// Maps
+		typedef std::map			<Numero, 	Tarjeta*> 		Tarjetas;
+		typedef std::unordered_map	<Articulo*, size_t> 		Articulos;
+		typedef std::unordered_set	<Cadena> 					Usuarios;
 
+		// Clase de error
+		class Id_duplicado {
+			public:
+				Id_duplicado(const Cadena&);
+				inline const Cadena& idd() const noexcept { return iden_; }
+			private:
+				Cadena iden_;
+		};
 
-    /*Observadores*/
-    //Id.
-    inline Cadena id()const noexcept{return this->id_;}
-    //Nombre.
-    inline Cadena nombre()const noexcept{return this->nombre_;}
-    //Apellido.
-    inline Cadena apellidos()const noexcept{return this->apell_;}
-    //Direccion.
-    inline Cadena direccion()const noexcept{return this->direccion_;}
-    //Tarjetas.
-    inline const Tarjetas& tarjetas()const noexcept{return this->Ts;}
-    //Compra.
-    inline const Articulos& compra()const noexcept{return this->As;}
-    //Numero de articulos.
-    inline int n_articulos()const noexcept{return this->As.size();}
-	//Clave.
-	inline Clave contrasena()const noexcept{return this->contrasena_;}
+		// Metodos
+		inline const 	Cadena& 	id()		const noexcept	{ return iden_; 	}
+		inline const 	Cadena& 	nombre()	const noexcept	{ return nomb_;		}
+		inline const	Cadena& 	apellidos()	const noexcept	{ return apell_;	}
+		inline const 	Cadena& 	direccion()	const noexcept 	{ return dirr_;		}
+		const 			Tarjetas& 	tarjetas()	const noexcept 	{ return tarjetas_;	}
 
-private:
-	/*Atributos*/
-	Cadena id_,nombre_,apell_,direccion_;
-	Clave contrasena_;
-	Tarjetas Ts;
-	Articulos As;
+		void 	es_titular_de		(const Tarjeta&);
+		void 	no_es_titular_de	(const Tarjeta&);
 
-	static unordered_set<Cadena> usuarios;
+		inline  const 	Articulos& 	compra	() const noexcept { return articulos_;	 		}
+		inline 	size_t 	n_articulos			() const noexcept { return articulos_.size(); 	}
+
+		void 	compra	(const Articulo&, size_t = 1);
+		
+	private:
+		static 		Usuarios users;
+
+		Cadena 		iden_;
+		Cadena 		nomb_;
+		Cadena 		apell_;
+		Cadena 		dirr_;
+		Clave  		clave_;
+		
+		Tarjetas 	tarjetas_;
+		Articulos 	articulos_;
+
 };
 
-/*Operadores Externos*/
-//Operador ostream
-ostream& operator <<(ostream& os,const Usuario& U);
-//Mostrar carro.
-void mostrar_carro(ostream& os,const Usuario& U);
+void mostrar_carro(std::ostream&, const Usuario&);
 
 #endif

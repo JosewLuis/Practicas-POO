@@ -1,148 +1,105 @@
-#include"usuario.hpp"
-#include<iostream>
-#include<unistd.h>
-#include<string.h>
-#include<stdlib.h>
-#include<iomanip>
+#include <cstring>
+#include <iostream>
+#include <unordered_set>
+#include <map>
+#include <utility>
+#include <iomanip>
+#include <random>
+#include <unistd.h>
 
+#include "usuario.hpp"
 
-using namespace std;
+Clave::Clave(const char* clave) {
+	if(strlen(clave) < 5) throw Incorrecta(CORTA);
 
-/*usuario.cpp*/
-unordered_set<Cadena> Usuario::usuarios;
+	std::uniform_int_distribution<int> 	distribution(0,63);
+	std::random_device					random_;
+	std::default_random_engine 			generator(random_());
 
-/*Tipo Razon*/
-typedef typename Clave::Razon razon;
+	char const saltChar[] = "./ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
+	char salt[2];
+	salt[0] = saltChar[distribution(generator)];
+	salt[1] = saltChar[distribution(generator)];
 
-/*Clase Clave.*/
+	char* pass = crypt(clave, salt);
 
-/*Constructores*/
-//Constructor.
-Clave::Clave(const char* texto){
-	if(strlen(texto)<5){
-		throw Incorrecta(razon::CORTA);
+	if(!pass) throw Incorrecta(Razon::ERROR_CRYPT);
+	clave_ = pass;
+
+}
+
+Clave::Incorrecta::Incorrecta(Razon r) : razon_{r} {}
+
+bool Clave::verifica(const Cadena& pass) const noexcept {
+	return strcmp(crypt(pass.c_str(), clave_.c_str()), clave_.c_str()) == 0;
+}
+
+Usuario::Usuarios Usuario::users;
+
+Usuario::Usuario(const Cadena& iden, const Cadena& nomb, const Cadena& apell, const Cadena& dirr, const Clave& clave) : iden_{iden}, nomb_{nomb}, 
+apell_{apell}, dirr_{dirr}, clave_{clave} {
+
+	if(users.insert(iden_).second == false) throw Usuario::Id_duplicado(iden_);
+
+}
+
+Usuario::~Usuario(){
+
+	for(auto i : tarjetas_)
+		i.second->anula_titular();
+
+	users.erase(iden_);
+
+}
+
+Usuario::Id_duplicado::Id_duplicado(const Cadena& cad) : iden_{cad} {}
+
+void Usuario::es_titular_de(const Tarjeta& t){
+
+	if(this == t.titular()) tarjetas_[t.numero()] = const_cast<Tarjeta*>(&t);
+
+}
+
+void Usuario::no_es_titular_de(const Tarjeta& t) { tarjetas_.erase(t.numero()); }
+
+void Usuario::compra(const Articulo& articulo, size_t unidades) {
+
+	if(unidades > 0){
+		articulos_[const_cast<Articulo*>(&articulo)] = unidades;
+	}
+	else
+		articulos_.erase(const_cast<Articulo*>(&articulo));
+
+}
+
+std::ostream& operator << (std::ostream& o, const Usuario& us) {
+
+	o << us.iden_ 		<< " [" << us.clave_.clave() << "] " << us.nomb_ << " " << us.apell_ << std::endl;
+	o << us.dirr_ 		<< std::endl;
+	o << "Tarjetas:" 	<< std::endl;
+	
+	for(auto i : us.tarjetas_)
+		o << *i.second << std::endl;
+
+	return o;
+}
+
+void mostrar_carro(std::ostream& o, const Usuario& us) {
+
+	o << "Carrito de compra de " 	<< us.id() << " [Artículos: " 		<< us.n_articulos() << "] " << std::endl;
+	o << " Cant.   Artículo" 		<< std::endl;
+	o << "==========================================================="	<< std::endl;
+
+	for(auto i : us.compra()) {
+		o << "   " 			<< i.second 				<< "   ";
+		o << "[" 			<< i.first->referencia() 	<< "] " 
+		  << "\"" << i.first->titulo() 					<< "\", " 
+		  << i.first->f_publi().anno() 					<< ". " 
+		  << std::fixed 	<< std::setprecision(2) 	<< i.first->precio() 
+		  << " €" 			<< std::endl;
 	}
 
-    char* salt=new char[2];
-    int r_number;
-    const char *const seedchars{"./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"};
-
-    random_device r;
-
-    default_random_engine el{r()};
-
-    uniform_int_distribution<int>u_dist{0,(int)(strlen(seedchars))-1};
-
-    for(int i=0;i<2;i++){
-     	r_number=u_dist(el);
-      	salt[i]=seedchars[r_number];
-    }
-
-    char* encrypted=crypt(texto, salt);
-
-    if(texto==encrypted){
-      throw Incorrecta(razon::ERROR_CRYPT);
-    }
-
-    this->cifrada_=encrypted;
-}
-
-/*Observadores*/
-//Verifica.
-bool Clave::verifica(const char* texto)const{
-	bool v;
-
-    if(const char* const checker=crypt(texto,this->cifrada_.c_str())){
-        v=checker==this->cifrada_;
-    }
-    else{
-        throw Incorrecta(razon::ERROR_CRYPT);
-    }
-
-    return v;
-}
-
-/*Clase Usuario.*/
-
-/*Constructores*/
-Usuario::Usuario(const Cadena& id,const Cadena& nombre,const Cadena& apell,const Cadena& direccion,const Clave& clave):id_(id),nombre_(nombre),apell_(apell),
-                                                                                                                       direccion_(direccion),contrasena_(clave){
-    //Insertamos y comprobamos que no este en el set.
-    pair<unordered_set<Cadena>::iterator,bool>p=usuarios.insert(id);
-    if(!p.second){
-        throw Id_duplicado(id);
-    }
-}
-
-/*Destructor*/
-Usuario::~Usuario(){
-    usuarios.erase(this->id_);
-
-    for(auto it=this->Ts.begin();it!=this->Ts.end();it++){
-        it->second->anula_titular();
-    }
-}
-
-/*Metodos asociativos*/
-//Asocia tarjeta.
-void Usuario::es_titular_de(const Tarjeta& t)noexcept{
-    if(this->id_==t.titular()->id()){
-        Ts[t.numero()]=const_cast<Tarjeta*>(&t);
-    }
-}
-
-//Desasocia.
-void Usuario::no_es_titular_de(const Tarjeta& t)noexcept{
-    Ts.erase(t.numero());
-}
-
-//Asocia articulo.
-void Usuario::compra(const Articulo& a,int cantidad)noexcept{
-    if(cantidad==0){
-        As.erase(const_cast<Articulo*>(&a));
-    }else{
-        As[const_cast<Articulo*>(&a)]=cantidad;
-    }
-}
-
-/*Operadores Externos*/
-//Operador ostream
-ostream& operator <<(ostream& os,const Usuario& U){
-    os << U.id();
-    os << " [";
-    os << U.contrasena().clave();
-    os << "] ";
-    os << U.nombre();
-    os << " ";
-    os << U.apellidos();
-    os << "\n";
-    os << U.direccion();
-    os << "\nTarjetas:\n";
-
-    for(auto it:U.tarjetas()){
-        os << *it.second << "\n";
-    }
-    return os;
-}
-
-
-//Mostrar carro.
-void mostrar_carro(ostream& os,const Usuario& U){
-    setlocale(LC_ALL,"es_ES");
-
-		os << "Carrito de compra de " << U.id() << " [Articulos: ";
-		os << U.n_articulos() << "]" << endl;
-
-		if(U.n_articulos()==0){
-			return;
-		}
-
-		os << " Cant. Articulo" << endl;
-		os << setw(65) << setfill('=') << '\n'  << setfill(' ');
-
-		for (auto const& i:U.compra()){
-		    os << setw(4) << i.second << "   " << *(i.first) << endl;
-		}
-		os << endl;
+	o << std::endl;
+	
 }

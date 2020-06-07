@@ -1,26 +1,13 @@
 #include "usuario-pedido.hpp"
 #include "pedido.hpp"
 
-/*usuario-pedido.cpp*/
-using namespace std;
-
-/*Asociadores*/
-void Usuario_Pedido::asocia(Usuario& U,Pedido& P){
-	this->UsuarioPedido_[&U].insert(&P);
-	this->PedidoUsuario_[&P]=&U;
+void Usuario_Pedido::asocia(Usuario& usuario, Pedido& pedido) {
+	usuarioPedido_[&usuario].insert(&pedido);
+	pedidoUsuario_[&pedido] = &usuario;
 }
 
-void Usuario_Pedido::asocia(Pedido& P,Usuario& U){
-	asocia(U,P);
-}
+void Usuario_Pedido::asocia(Pedido& pedido, Usuario& usuario)               { asocia(usuario, pedido); }
 
-/*Observadores*/
-//Devuelve pedidos.
-const Usuario_Pedido::Pedidos& Usuario_Pedido::pedidos(Usuario& U)const noexcept{
-	return this->UsuarioPedido_.find(&U)->second;
-}
+const Usuario_Pedido::Pedidos& Usuario_Pedido::pedidos(Usuario& usuario)    { return usuarioPedido_.find(&usuario)->second; }
 
-//Devuelve usuario.
-const Usuario* Usuario_Pedido::cliente(Pedido& P)const noexcept{
-	return this->PedidoUsuario_.find(&P)->second;
-}
+const Usuario* Usuario_Pedido::cliente(Pedido& pedido) 						{ return pedidoUsuario_.find(&pedido)->second; }
