@@ -1,46 +1,36 @@
-#ifndef _ARTICULO_HPP_
-#define _ARTICULO_HPP_
-#include<iostream>
-#include"cadena.hpp"
-#include"fecha.hpp"
+#ifndef ARTICULO_HPP
+#define ARTICULO_HPP
 
-using namespace std;
+#include <iostream>
 
-/*Clase Articulo*/
+#include "cadena.hpp"
+#include "fecha.hpp"
 
-class Articulo{
-public:
-	/*Constructores*/
-	//Constructor de 5 parametros.
-	Articulo(const Cadena& ref,const Cadena& titulo,const Fecha& publ,double precio,size_t ejemplares=0);
+class Articulo {
 
-	/*Observadores*/
-	//Referencia.
-	inline const Cadena referencia()const noexcept{return this->ref_;}
-	//Titulo.
-	inline const Cadena titulo()const noexcept{return this->titulo_;}
-	//Fecha.
-	inline const Fecha f_publi()const noexcept{return this->public_;}
-	//Precio.
-	inline double precio()const noexcept{return this->precio_;}
-	//Ref a Precio.
-	inline double& precio()noexcept{return this->precio_;}
-	//Ejemplares.
-	inline size_t stock()const noexcept{return this->ejemplares_;}
-	//Ref a Ejemplares.
-	inline size_t& stock()noexcept{return this->ejemplares_;}
+	public:
+		// Constructor
+		explicit Articulo(const Cadena&, const Cadena&, const Fecha&, double, size_t);
 
-private:
-	/*Atributos*/
-	Cadena ref_,titulo_;
-	Fecha public_; 
-	double precio_;
-	size_t ejemplares_;
+		// Metodos
+		inline const 	Cadena&	referencia() const 	noexcept { return ref_; 	}
+		inline const 	Cadena&	titulo()	 const 	noexcept { return titulo_;	}
+		inline const 	Fecha&	f_publi()	 const 	noexcept { return fecha_; 	}
+		inline double 			precio()	 const 	noexcept { return precio_; 	}
+		inline size_t 			stock()		 const 	noexcept { return stock_; 	}
+		inline size_t& 			stock()			   	noexcept { return stock_; 	}
+		inline double& 			precio() 			noexcept { return precio_; 	}
+
+	private:
+		Cadena 	ref_;
+		Cadena 	titulo_;
+		Fecha	fecha_;
+		double	precio_;
+		size_t	stock_;
+
 };
 
-
-/*Operadores externos*/
-//Operador ostream.
-ostream& operator <<(ostream& os, const Articulo& A)noexcept;
+// Operador <<
+std::ostream& operator << (std::ostream& o, const Articulo&);
 
 #endif

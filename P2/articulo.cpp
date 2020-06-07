@@ -1,30 +1,20 @@
-#include<iostream>
-#include<iomanip>
-#include"articulo.hpp"
-#define EURO char(128)
+#include <iostream>
+#include <iomanip>
 
-using namespace std;
+#include "articulo.hpp"
+#include "cadena.hpp"
+#include "fecha.hpp"
 
-/*Articulo.cpp*/
+Articulo::Articulo(const Cadena& ref, const Cadena& titulo, const Fecha& fecha, double precio, size_t stock) : ref_{ref}, titulo_{titulo}, fecha_{fecha}, precio_{precio}, stock_{stock} {}
 
-/*Constructores*/
-//Constructor de 5 parametros.
-Articulo::Articulo(const Cadena& ref,const Cadena& titulo,const Fecha& publ,double precio,size_t ejemplares):ref_(ref),titulo_(titulo),public_(publ),
-	                                                                                                         precio_(precio),ejemplares_(ejemplares){}
+std::ostream& operator << (std::ostream& o, const Articulo& articulo) {
 
-/*Operadores externos*/
-//Operador ostream.
-ostream& operator <<(ostream& os, const Articulo& A)noexcept{
-	setlocale(LC_ALL,"es_ES");
-	os << "[";
-	os << A.referencia();
-	os << "] \"";
-	os << A.titulo();
-	os << "\", ";
-	os << A.f_publi().anno();
-	os << ", ";
-	os << A.precio();
-	os << " " << EURO;
+	char art[5];
+	sprintf(art, "%d", articulo.f_publi().anno());
 
-	return os;
+	o << "[" << articulo.referencia() << "] " << "\"" << articulo.titulo() << "\"" ", ";
+	o << art;
+	o << ". " << std::fixed << std::setprecision(2) << articulo.precio() << " €";
+
+	return o;
 }
