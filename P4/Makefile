@@ -1,9 +1,9 @@
+#!/usr/bin/colormake
 # $Id: Makefile 399 2017-05-17 17:32:04Z gerardo $
 # Makefile para el caso 4 de la LIBRERÍA
-# ©2010-17 los profesores de POO, para P4
+# ©2010-20 los profesores de POO, para P4
 #
 ## Variables, macros, más macros y más variables, que es lo mismo. ##
-# --- Parte configurable ---
 
 # NOMBREALUMNO es el nombre del directorio donde el alumno guarda las
 # prácticas de POO (C++). Dentro de ese directorio debe haber uno para
@@ -29,37 +29,45 @@ DIRFECHACADENA = ../${DFC}
 # unitarias automáticas.
 DIRTESTS = ../Tests-auto
 NOMBREPRACTICA := P4
-INCLUDES  = -I${DIRFECHACADENA} -I${DIRTESTS} -I.
+INCLUDES = -I${DIRFECHACADENA} -I${DIRTESTS} -I.
 
 # DIRLUHN es el directorio donde está el fichero luhn.cpp con la función luhn
 DIRLUHN = ..
 
+# --- Parte configurable ---
 # Compilador de C++ preferido: el de LLVM (clang++), el de GNU (g++),
-# el de GNU en la versión 5 (g++-5), el de Intel (icpc)...
+# el de GNU en la versión 8 (g++-8), el de Intel (icpc)...
 CXX = clang++
 
 # ¿Qué estándar seguir?
 # c++98 o c++03 (-ansi): estándar de 1998, corregido en 2003. NO USAR YA.
-# c++0x: borrador del estándar de 2011. Usar si el compilador es antiguo.
 # c++11: estándar de 2011 - Versión mínima necesaria.
-# c++1y: borrador del est. de 2014. Si su compilador es antiguo pero no mucho.
-# c++14: estándar de 2014 - Recomendado si su compilador lo admite.
-# c++17: estándar de 2017 - Se puede usar si su compilador lo admite.
-# c++2y: estándar previsto para 2020. Experimental, no recomendado.
-STD = c++14
+# c++14: estándar de 2014 - OK si su compilador lo admite.
+# c++17: estándar de 2017 - Recomendado si su compilador lo admite.
+# c++2a: estándar previsto para 2020. Experimental, no recomendado.
+STD = c++17
+
+# Opciones para el preprocesador. No las quite.
+# -Idirec : directorio donde buscar cabeceras adicionales (#include "...")
+# -Dmacro : define una macro del preprocesador, como #define
+CPPFLAGS = ${INCLUDES} -D${NOMBREPRACTICA}
 
 # Opciones para el compilador. Añada o quite las que prefiera pero deje
-# al menos la primera. Recomendado: no quite ninguna.
+# al menos la primera. Recomendado: déjelo como está.
 # -std=${STD}: el estándar de C++ a utilizar, en $(STD)
 # -g         : para poder depurar, si hay que hacerlo
+# -O         : optimizador
 # -pedantic  : para que se ajuste sin desvíos del estándar empleado
 # -Wall      : para que dé todo tipo de avisos, no solo los normales
+# -pg        : genera código para escribir información de perfilado
+# -fprofile-arcs : genera código para analizar llamadas a funciones
+# -ftest-coverage: cobertura de pruebas
 CXXFLAGS = -std=${STD} -g -pedantic -Wall
 
-# Opciones del preprocesador. No las quite.
-# -I : directorio donde buscar cabeceras adicionales (#include "...")
-# -D : define una macro del preprocesador, como #define
-CPPFLAGS = ${INCLUDES} -D${NOMBREPRACTICA}
+# Opciones para el enlazador. Recomendado: ninguna.
+# -pg            : para poder perfilar el programa con gprof
+# -fprofile-arcs : V. antes; implica -lgcov
+LDFLAGS =
 
 # --- Fin parte configurable
 
@@ -69,10 +77,6 @@ LIBS      = ${LOCALLIBS} ${EXTLIBS}
 VPATH     = .:${DIRTESTS}:${DIRFECHACADENA}:${DIRLUHN}
 
 # Estos son los ficheros que tiene que hacer el alumno. El resto se le da.
-# NOTA IMPORTANTE: usuario-pedido.cpp no hace falta si se hacen los métodos
-# de Usuario_Pedido inline, pero si se definen normales en usuario-pedido.cpp, 
-# añádase a OWN_SRCS y quítese usuario-pedido.hpp de OWN_HDRS.
-
 OWN_SRCS  = usuario.cpp tarjeta.cpp articulo.cpp pedido-articulo.cpp \
   pedido.cpp usuario-pedido.cpp
 OWN_HDRS  = $(OWN_SRCS:.cpp=.hpp)
@@ -117,14 +121,14 @@ test-auto: ${TEST_EXE}
 	./$<
 
 # Hace comprobaciones en el código fuente
-check:  ${OWN_SRCS}
+check:  ${OWN_SRCS} ${CHECK_SRC}
 	${MAKE} --file=Make_check.mk $@
 
 # Ejecuta los tests comprobando que no haya fugas de memoria
 # - valgrind: http://valgrind.org
 valgrind: ${MAIN_EXE} ${TEST_EXE}
-	valgrind --leak-check=full ./${TEST_EXE}
-	valgrind --leak-check=full ./${MAIN_EXE}
+	valgrind --quiet ./${TEST_EXE} --logger=minimal
+	valgrind --quiet ./${MAIN_EXE}
 
 ## Compilación ## 
 
@@ -154,40 +158,18 @@ fecha.o : ${DIRFECHACADENA}/fecha.hpp
 # Por si se cambia algo en los tests automáticos
 ${TESTS_OBJS}: ${TESTS_SRCS} ${TESTS_HDRS}
 
-## Cobertura / Perfilado 
-
-# Descomentando estas dos líneas de CXXFLAGS y LDFLAGS se activa el soporte 
-# para las pruebas de cobertura y el perfilado de los programas. 
-# Una vez tenemos esto y recompilamos por completo (generando una serie de 
-# ficheros .gcno para gcov), podemos ejecutar el programa de la forma usual, 
-# y se generarán gmon.out (para gprof) y un .gcda (para gcov) para cada .cpp 
-# y .hpp del programa ejecutado.
-#
-# Desde el directorio donde está gmon.out, podremos hacer:
-#
-# gprof ejecutable
-#
-# para ver en la salida estándar qué funciones han consumido más tiempo. 
-# Y podremos usar:
-#
-# gcov fichero.cpp
-#
-# para ver qué líneas se han ejecutado y cuáles no en fichero.cpp.gcov.
-
-#CXXFLAGS = -pg -g -fprofile-arcs -ftest-coverage -std=${STD} -pedantic -Wall
-#LDFLAGS  = -pg -fprofile-arcs
-
 ## Limpieza
 #  normal...
 clean:
-	${RM} ${MAIN_EXE} ${MAIN_OBJS} ${TEST_EXE} ${TEST_OBJS} \
-	      ${OWN_OBJS} ${LOCALLIBS} *.d *~ \#* *.{aux,log,dvi,toc} core
+	${RM} ${RMFLAGS} ${MAIN_EXE} ${MAIN_OBJS} ${TEST_EXE} ${TEST_OBJS} \
+	      ${OWN_OBJS} ${LOCALLIBS} \
+	      *.d *~ \#* *.gcno *.{aux,log,dvi,toc} core
 	${MAKE} --directory=${DIRFECHACADENA} clean
 	${MAKE} --file=Make_check.mk clean
 
 # ... y del archivo a entregar.
 distclean: clean
-	${RM} ${NOMBRETAR}
+	${RM} ${RMFLAGS} ${NOMBRETAR}
 
 ## Empaquetado para entrega
 
@@ -204,7 +186,7 @@ ifeq ($(strip $(NOMBREALUMNO)),)
 	@echo "Vea las instrucciones de entrega de las prácticas."
 else
 	@echo "Creando archivo en ${NOMBRETAR} con el siguiente contenido:"
-	@tar --create --verbose --gzip --file=${NOMBRETAR} --directory=../.. \
+	tar --create --verbose --gzip --file=${NOMBRETAR} --directory=../.. \
 		$D/usuario.cpp  $D/usuario.hpp  \
 		$D/articulo.cpp $D/articulo.hpp \
 		$D/tarjeta.cpp  $D/tarjeta.hpp  \

@@ -1,65 +1,87 @@
-#include <iostream>
-#include <iomanip>
+#include"pedido.hpp"
+#include<iostream>
+#include<unistd.h>
+#include<string.h>
+#include<stdlib.h>
+#include<iomanip>
 
-#include "pedido.hpp"
-#include "pedido-articulo.hpp"
-#include "usuario-pedido.hpp"
+/*pedido.cpp*/
+using namespace std;
 
-size_t Pedido::total_ = 0;
+/*Inicializamos la variable estatica*/
+int Pedido::numPedido_=0;
 
-Pedido::Pedido(Usuario_Pedido& usPedido, Pedido_Articulo& peArticulo, Usuario& usuario, const Tarjeta& tarjeta, const Fecha& fecha) 
-: nPedido_{total_ + 1}, importe_{0.},fecha_{fecha}, tarjeta_{&tarjeta} {
+/*Constructores*/
+Pedido::Pedido(Usuario_Pedido& up,Pedido_Articulo& pa,Usuario& u,const Tarjeta& t,const Fecha& f):fecha_{f},tarjeta_{&t}{
+	this->numero_=this->numPedido_+1;
+	if(t.titular()!=&u){
+		throw Pedido::Impostor(&u);
+	}
+	if(t.caducidad()<f){
+		throw Tarjeta::Caducada(t.caducidad());
+	}
+	if(!t.activa()){
+		throw Tarjeta::Desactivada();
+	}
 
-	if(tarjeta.titular() != &usuario)   throw Pedido::Impostor(&usuario);
-	if(tarjeta.caducidad() < fecha)     throw Tarjeta::Caducada(tarjeta.caducidad());
-	if(tarjeta.activa() == false )		throw Tarjeta::Desactivada();
-
-	auto compra = usuario.compra();
-
-	for(auto i : compra) {
-		if(ArticuloAlmacenable* articuloAlmacenable = dynamic_cast<ArticuloAlmacenable*>(i.first)) {
-			if(i.second > articuloAlmacenable->stock()) {
-				usuario.compra(*articuloAlmacenable, 0);
-				throw SinStock(articuloAlmacenable);
+	auto compra=u.compra();
+	for(auto i:compra){
+		if(ArticuloAlmacenable* AA=dynamic_cast<ArticuloAlmacenable*>(i.first)){
+			if(i.second>AA->stock()){
+				u.compra(*AA,0);
+				throw SinStock(AA);
 			}
-			articuloAlmacenable->stock() -= i.second;
-			peArticulo.pedir(*this, *articuloAlmacenable, articuloAlmacenable->precio(), i.second);
-			importe_ += articuloAlmacenable->precio() * i.second;
-		}
-		else {
-			LibroDigital* libroDigital = dynamic_cast<LibroDigital*>(i.first);
-
-			if(libroDigital->f_expir() < fecha) {
-				usuario.compra(*libroDigital, 0);
+			AA->stock()-=i.second;
+			pa.pedir(*this,*AA,AA->precio(),i.second);
+			this->total_+=AA->precio()*i.second;
+		}else{
+			LibroDigital* LD=dynamic_cast<LibroDigital*>(i.first);
+			if(LD->f_expir()<f){
+				u.compra(*LD,0);
+			}else{
+				pa.pedir(*this,*LD,LD->precio(),i.second);
+				this->total_+=LD->precio()*i.second;
 			}
-			else{
-				peArticulo.pedir(*this, *libroDigital, libroDigital->precio(), i.second);
-				importe_ += libroDigital->precio() * i.second;
-			}
-				
 		}
 	}
 
-	// Puede quedarse a 0 si no hay stock
-	if(usuario.compra().empty()) throw Pedido::Vacio(&usuario);
+	if(u.compra().empty()){
+		throw Pedido::Vacio(&u);
+	}
+	up.asocia(*this,u);
 
-	usPedido.asocia(*this, usuario);
-	
-	nPedido_ = ++total_;
-	const_cast<Usuario::Articulos&>(usuario.compra()).clear();
-
+	this->numPedido_++;	
+	const_cast<Usuario::Articulos&>(u.compra()).clear();
 }
 
-std::ostream& operator << (std::ostream& o, const Pedido& pedido) {
+/*Operadores externos*/
 
-	o 	<< "Núm. pedido: " 	<< pedido.numero() 				<< std::endl
-    	<< "Fecha:       " 	<< pedido.fecha() 				<< std::endl
-    	<< "Pagado con:  " 	<< pedido.tarjeta()->tipo()
-    	<< " n.º: " 		<< pedido.tarjeta()->numero() 	<< std::endl
-    	<< "Importe:     "  
-		<< std::fixed		<< std::setprecision(2) 							
-		<< pedido.total()	<< " €" 						<< std::endl;
+//Operador ostream.
 
-  return o;
+ostream& operator<<(ostream& os, const Pedido& P)noexcept{
 
+	Cadena c;
+
+	switch(P.tarjeta()->tipo()){
+		case 0:	c="VISA";break;
+		case 1: c="Mastercard";break;
+		case 2: c="Maestro";break;
+		case 3: c="JCB";break;
+		case 4: c="AmericanExpress";break;
+		case 5: c="indeterminado";break;
+        default: c="Error, ninguna tarjeta conocida";		
+
+	}
+
+
+
+	os << "Núm. pedido: " << P.numero() << std::endl
+	   << "Fecha:       " << P.fecha() << std::endl
+       << "Pagado con: Tipo " << c
+       << " n.º: "  << P.tarjeta()->numero() << std::endl
+       << "Importe:     "  
+	   << std::fixed << std::setprecision(2) 							
+	   << P.total()	<< " €" << std::endl;
+
+	return os;
 }

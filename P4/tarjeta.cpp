@@ -1,136 +1,131 @@
-#include <unordered_set>
-#include <iomanip>
-#include <ctype.h>
-#include <algorithm>
-#include <functional>
+#include"tarjeta.hpp"
+#include<iostream>
+#include<iomanip>
+#include<string.h>
+#include<stdlib.h>
+//#include"luhn.cpp"
 
-#include "tarjeta.hpp"
-#include "fecha.hpp"
-#include "cadena.hpp"
-#include "usuario.hpp"
+set<Numero> Tarjeta::numeros{};
 
+/*Clase Numero*/
 
-bool luhn(const Cadena&);
+using namespace std;
 
-Numero::Numero(const Cadena& num) {
+/*Tipo Razon*/
+typedef typename Numero::Razon razon;
 
-	Cadena aux{num};
+/*Constructores*/
+Numero::Numero(const Cadena& numero):numero(numero){
+	Cadena aux{numero};
 
-	auto EsBlanco = [&](char c) -> bool { return std::isspace(c); };
+	auto EsBlanco=[&](char c)->bool{
+		return std::isspace(c);
+	};
 
-	auto iterator = std::remove_if(aux.begin(), aux.end(), EsBlanco);
+	auto iterator=std::remove_if(aux.begin(),aux.end(),EsBlanco);
 
-	aux = aux.substr(0, std::distance(aux.begin(), iterator));
+	aux=aux.substr(0,std::distance(aux.begin(),iterator));
 
-	for(auto i = aux.begin(); i != aux.end(); ++i)
-		if(std::find_if(aux.begin(), aux.end(), not1(EsDigito())) != aux.end())
+	for(auto i=aux.begin();i!=aux.end();i++){
+		if(std::find_if(aux.begin(),aux.end(),not1(EsDigito()))!=aux.end()){
 			throw Incorrecto(DIGITOS);
-
-	int tam = aux.length();
-
-	if(tam < 13 || tam > 19) 	throw Incorrecto(LONGITUD);
-	if(!luhn(aux)) 				throw Incorrecto(NO_VALIDO);
-
-	num_ = aux;
-}
-
-Numero::Incorrecto::Incorrecto(const Razon& r) : razon_{r} {}
-
-bool Numero::operator < (const Numero& num) const noexcept { return this->num_ < num.num_; }
-
-Tarjeta::Tarjetas Tarjeta::tarjetas_;
-
-Tarjeta::Tarjeta(const Numero& num, Usuario& us, const Fecha& fe) : num_{num}, caducidad_{fe}, estado_{true}, titular_{&us} {
-
-	if(caducidad_ < Fecha()) throw Tarjeta::Caducada(caducidad_);
-	if(tarjetas_.insert(static_cast<Cadena>(num)).second == false) throw Tarjeta::Num_duplicado(num);
-
-	const_cast<Usuario*>(titular_)->es_titular_de(*this);
-
-	tipo_ = tipoTarjeta();
-
-}
-
-Tarjeta::~Tarjeta() {
-
-	if(titular_ != nullptr) const_cast<Usuario*>(titular_)->no_es_titular_de(*this);
-
-	tarjetas_.erase(static_cast<Cadena>(num_));
-
-}
-
-void Tarjeta::anula_titular(){
-
-	estado_ 	= false;
-	titular_	= nullptr;
-
-}
-
-Tarjeta::Tipo Tarjeta::tipoTarjeta(){
-
-	Tipo tipo;
-
-	switch (num_[0]) {
-		case '3':
-			if(num_[1] == '4' || num_[1] == '7')
-				tipo = AmericanExpress;
-			else
-				tipo = JCB;
-			break;
-		case '4':
-			tipo = VISA;
-			break;
-		case '5':
-			tipo = Mastercard;
-			break;
-		case '6':
-			tipo = Maestro;
-			break;
-		default:
-			tipo = Otro;
-
+		}
 	}
 
-	return tipo;
-}
+	int tam=aux.length();
 
-std::ostream& operator << (std::ostream& o, const Tarjeta& t) {
-
-	Cadena nomApell{t.titular()->nombre()};
-	nomApell += " ";
-	nomApell += t.titular()->apellidos();
-
-	for(auto i = nomApell.begin(); i != nomApell.end(); ++i)
-		*i = toupper(*i);
-
-	o << t.tipo() 					<< std::endl;
-	o << t.numero() 				<< std::endl;
-	o << nomApell					<< std::endl;
-	o << "Caduca:";
-	o << std::setfill('0') 			<< std::setw(2);
-	o << t.caducidad().mes() 		<< "/";
-	o << (t.caducidad().anno() % 100);
-
-	return o;
-}
-
-std::ostream& operator << (std::ostream& o, const Tarjeta::Tipo& t) {
-
-	switch(t) {
-		case Tarjeta::VISA: 			o << "VISA"; 			break;
-		case Tarjeta::Mastercard: 		o << "Mastercard";		break;
-		case Tarjeta::Maestro: 			o << "Maestro"; 		break;
-		case Tarjeta::JCB: 				o << "JCB"; 			break;
-		case Tarjeta::AmericanExpress: 	o << "AmericanExpress"; break; 
-		default: 						o << "Tipo indeterminado";
+	if(tam<13 || tam>19){
+		throw Incorrecto(LONGITUD);
 	}
-	return o;
+
+	if(!luhn(aux)){
+		throw Incorrecto(NO_VALIDO);
+	}
+
+	this->numero=aux;
 }
 
-bool Tarjeta::operator < (const Tarjeta& t) const noexcept{
-	return this->num_ < t.num_;
+/*Operadores externos*/
+//Operador <.
+bool operator <(const Numero& n1,const Numero n2)noexcept{
+	return Cadena{n1}<Cadena{n2};
 }
 
-Tarjeta::Caducada::Caducada(const Fecha& f) : fecha_{f} {}
 
-Tarjeta::Num_duplicado::Num_duplicado(const Numero& n) : num_{n} {}
+/*Clase Tarjeta*/
+
+/*Constructores*/
+Tarjeta::Tarjeta(const Numero& numero,Usuario& usuario,const Fecha fecha):numero_{numero},usuario_{&usuario},fecha_{fecha},activa_{true}{
+	if(this->fecha_<=Fecha()){
+		throw Caducada(fecha);
+	}
+
+	pair<set<Numero>::iterator,bool>p=this->numeros.insert(numero);
+	if(!p.second){
+		throw Num_duplicado(numero);
+	}
+
+	switch(numero[0]){
+			case '4': this->tipo_=Tarjeta::VISA;break;
+    	case '5': this->tipo_=Tarjeta::Mastercard;break;
+	    case '6': this->tipo_=Tarjeta::Maestro;break;
+	    case '3':
+			switch (numero[1]){
+        		case '4' | '7': this->tipo_=Tarjeta::AmericanExpress;break;
+		        default: this->tipo_=Tarjeta::JCB;break;
+        	}
+    	default: this->tipo_=Tarjeta::Otro;break;
+	}
+
+	Cadena tf{usuario.nombre()+" "+usuario.apellidos()};
+
+    for(int i=0;i<tf.length();i++){
+        tf[i]=toupper(tf[i]);
+	}
+
+    this->titular_facial_=tf;
+
+    usuario_->es_titular_de(*this);
+}
+
+/*Destructor*/
+Tarjeta::~Tarjeta(){
+	if(this->usuario_!=nullptr){
+        const_cast<Usuario*>(this->usuario_)->no_es_titular_de(*this);
+	}
+
+    this->numeros.erase(this->numero_);
+}
+
+/*Operadores externos*/
+//Operador <.
+bool operator<(const Tarjeta& T1,const Tarjeta& T2)noexcept{
+	return T1.numero()<T2.numero();
+}
+
+//Operador ostream.
+ostream& operator <<(ostream& os,const Tarjeta& T){
+    switch (T.tipo()){
+		    case 0:	os << " VISA ";break;
+				case 1: os << " Mastercard ";break;
+				case 2: os << " Maestro ";break;
+				case 3: os << " JCB	";break;
+				case 4: os << " AmericanExpress ";break;
+				case 5: os << " Otro ";break;
+        default: os << "Error, ninguna tarjeta conocida" << endl;
+    }
+
+    os << "\n";
+		os << T.numero();
+		os << "\n";
+		os << T.titular_facial();
+    os << "\n";
+		os << "Caduca: ";
+		os << setprecision(2);
+		os << ((T.caducidad().mes()<10)?'0':' ');
+		os << T.caducidad().mes();
+		os << "/";
+		os << (T.caducidad().anno()%100) << endl;
+
+    return os;
+}
