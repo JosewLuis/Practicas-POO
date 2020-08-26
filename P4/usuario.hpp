@@ -56,7 +56,9 @@ public:
 	/*Constructores*/
 	explicit Usuario(const Cadena& id,const Cadena& nombre,const Cadena& apell,const Cadena& direccion,const Clave& clave);
 	Usuario(const Usuario& U)=delete;
+	Usuario(Usuario& U)=delete;
 	Usuario& operator=(const Usuario& U)=delete;
+	Usuario& operator=(Usuario& U)=delete;
 
 	/*Destructor*/
 	~Usuario();
@@ -78,6 +80,8 @@ public:
     //Asocia articulo.
     void compra(const Articulo& a,int cantidad=1)noexcept;
 
+	/*Operador ostream*/
+	friend ostream& operator <<(ostream& os,const Usuario& U);
 
     /*Observadores*/
     //Id.
@@ -108,8 +112,6 @@ private:
 };
 
 /*Operadores Externos*/
-//Operador ostream
-ostream& operator <<(ostream& os,const Usuario& U);
 //Mostrar carro.
 void mostrar_carro(ostream& os,const Usuario& U);
 

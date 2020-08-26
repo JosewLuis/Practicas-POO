@@ -1,87 +1,70 @@
-#include"pedido.hpp"
-#include<iostream>
-#include<unistd.h>
-#include<string.h>
-#include<stdlib.h>
-#include<iomanip>
+#include <iostream>
+#include <iomanip>
+#include "pedido.hpp"
+#include "pedido-articulo.hpp"
+#include "usuario-pedido.hpp"
 
-/*pedido.cpp*/
+size_t Pedido::total_ = 0;
+
 using namespace std;
 
-/*Inicializamos la variable estatica*/
-int Pedido::numPedido_=0;
+/*Clase Pedido*/
 
-/*Constructores*/
-Pedido::Pedido(Usuario_Pedido& up,Pedido_Articulo& pa,Usuario& u,const Tarjeta& t,const Fecha& f):fecha_{f},tarjeta_{&t}{
-	this->numero_=this->numPedido_+1;
+/*Constructor*/
+Pedido::Pedido(Usuario_Pedido& up,Pedido_Articulo& pa,Usuario& u,const Tarjeta& t,const Fecha& fecha)
+:nPedido_{total_+1},importe_{0.},fecha_{fecha},tarjeta_{&t}{
 	if(t.titular()!=&u){
 		throw Pedido::Impostor(&u);
 	}
-	if(t.caducidad()<f){
+
+	if(t.caducidad()<fecha){
 		throw Tarjeta::Caducada(t.caducidad());
 	}
-	if(!t.activa()){
+
+	if(t.activa()==false){
 		throw Tarjeta::Desactivada();
 	}
 
 	auto compra=u.compra();
+
 	for(auto i:compra){
-		if(ArticuloAlmacenable* AA=dynamic_cast<ArticuloAlmacenable*>(i.first)){
-			if(i.second>AA->stock()){
-				u.compra(*AA,0);
-				throw SinStock(AA);
+		if(ArticuloAlmacenable* articuloAlmacenable=dynamic_cast<ArticuloAlmacenable*>(i.first)){
+			if(i.second>articuloAlmacenable->stock()){
+				u.compra(*articuloAlmacenable,0);
+				throw SinStock(articuloAlmacenable);
 			}
-			AA->stock()-=i.second;
-			pa.pedir(*this,*AA,AA->precio(),i.second);
-			this->total_+=AA->precio()*i.second;
-		}else{
-			LibroDigital* LD=dynamic_cast<LibroDigital*>(i.first);
-			if(LD->f_expir()<f){
-				u.compra(*LD,0);
+			articuloAlmacenable->stock()-=i.second;
+			pa.pedir(*this,*articuloAlmacenable,articuloAlmacenable->precio(),i.second);
+			importe_+=articuloAlmacenable->precio()*i.second;
+		}else {
+			LibroDigital* libroDigital=dynamic_cast<LibroDigital*>(i.first);
+			if(libroDigital->f_expir()<fecha){
+				u.compra(*libroDigital,0);
 			}else{
-				pa.pedir(*this,*LD,LD->precio(),i.second);
-				this->total_+=LD->precio()*i.second;
-			}
+				pa.pedir(*this,*libroDigital,libroDigital->precio(),i.second);
+				importe_+=libroDigital->precio()*i.second;
+			}				
 		}
 	}
-
+	
 	if(u.compra().empty()){
 		throw Pedido::Vacio(&u);
 	}
 	up.asocia(*this,u);
-
-	this->numPedido_++;	
+	
+	nPedido_=++total_;
 	const_cast<Usuario::Articulos&>(u.compra()).clear();
 }
 
-/*Operadores externos*/
+/*Operador ostream*/
+ostream& operator<<(ostream& os, const Pedido& pedido){
+	os 	<< "Núm. pedido: " << pedido.numero() << endl
+    		<< "Fecha:       " << pedido.fecha() << endl
+    		<< "Pagado con:  " << pedido.tarjeta()->tipo()
+    		<< " n.º: " << pedido.tarjeta()->numero() << endl
+    		<< "Importe:     "  
+		<< std::fixed << setprecision(2)
+		<< pedido.total() << " €" << std::endl;
 
-//Operador ostream.
-
-ostream& operator<<(ostream& os, const Pedido& P)noexcept{
-
-	Cadena c;
-
-	switch(P.tarjeta()->tipo()){
-		case 0:	c="VISA";break;
-		case 1: c="Mastercard";break;
-		case 2: c="Maestro";break;
-		case 3: c="JCB";break;
-		case 4: c="AmericanExpress";break;
-		case 5: c="indeterminado";break;
-        default: c="Error, ninguna tarjeta conocida";		
-
-	}
-
-
-
-	os << "Núm. pedido: " << P.numero() << std::endl
-	   << "Fecha:       " << P.fecha() << std::endl
-       << "Pagado con: Tipo " << c
-       << " n.º: "  << P.tarjeta()->numero() << std::endl
-       << "Importe:     "  
-	   << std::fixed << std::setprecision(2) 							
-	   << P.total()	<< " €" << std::endl;
-
-	return os;
+	  return os;
 }

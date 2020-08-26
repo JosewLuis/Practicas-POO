@@ -1,85 +1,83 @@
-#ifndef _PEDIDO_HPP_
-#define _PEDIDO_HPP_
-#include<iostream>
-#include"usuario.hpp"
-#include"tarjeta.hpp"
-#include"fecha.hpp"
-#include"articulo.hpp"
-#include"pedido-articulo.hpp"
-#include"usuario-pedido.hpp"
+#ifndef PEDIDO_HPP
+#define PEDIDO_HPP
+#include <iostream>
+#include "usuario.hpp"
+#include "tarjeta.hpp"
+#include "fecha.hpp"
+#include "articulo.hpp"
+#include "pedido-articulo.hpp"
+#include "usuario-pedido.hpp"
 
 class Usuario_Pedido;
 class Pedido_Articulo;
 class Tarjeta;
 
-/*pedido.hpp*/
 using namespace std;
 
 /*Clase Pedido*/
-class Pedido{
+class Pedido {
 public:
-	/*Constructores*/
-	Pedido(Usuario_Pedido& up,Pedido_Articulo& pa,Usuario& u,const Tarjeta& t,const Fecha& f=Fecha());
+	/*Constructor*/
+	Pedido(Usuario_Pedido& up,Pedido_Articulo& pa,Usuario& u,const Tarjeta& t,const Fecha& fecha=Fecha());
 
-	/*Clase de excepcion Vacio*/
+	/*Clase excepcion Vacio*/
 	class Vacio{
 	public:
 		/*Constructor*/
-		Vacio(Usuario* U):U_(U){}
+		Vacio(Usuario* usuario):usuario_(usuario){}
 		/*Observador*/
-		Usuario& usuario()const noexcept{return *this->U_;}
+		const Usuario& usuario()const{return *usuario_;}
 	private:
 		/*Atributos*/
-		Usuario* U_;
+		Usuario* usuario_;
 	};
-
-	/*Clase de excepcion Impostor*/
+		
+	/*Clase excepcion Impostor*/
 	class Impostor{
 	public:
 		/*Constructor*/
-		Impostor(Usuario* U):U_(U){}
+		Impostor(Usuario* usuario):usuario_(usuario){}
 		/*Observador*/
-		Usuario& usuario()const noexcept{return *this->U_;}
+		const Usuario& usuario()const{return *usuario_;}
 	private:
 		/*Atributos*/
-		Usuario* U_;
+		Usuario* usuario_;
 	};
 
-	/*Clase de excepcion SinStock*/
+	/*Clase excepcion SinStock*/
 	class SinStock{
 	public:
 		/*Constructor*/
-		SinStock(Articulo* A):A_(A){}
+		SinStock(Articulo* articulo):articulo_(articulo){}
 		/*Observador*/
-		Articulo& articulo()const noexcept{return *this->A_;}
+		const Articulo& articulo()const{return *articulo_;}
 	private:
 		/*Atributos*/
-		Articulo* A_;
+		Articulo* articulo_;
 	};
 
 	/*Observadores*/
 	//Devuelve numero.
-	inline int numero()const noexcept{return this->numero_;}
-	//Devuelve tarjeta.
-	inline Tarjeta const* tarjeta()const noexcept{return this->tarjeta_;}
+	inline size_t numero()const{return this->nPedido_;}
+	//Devuelve la tarjeta.
+	inline Tarjeta const* tarjeta()const{return this->tarjeta_;}
 	//Devuelve fecha.
-	inline const Fecha& fecha()const noexcept{return this->fecha_;}
+	inline const Fecha& fecha()const{return this->fecha_;}
+	//Devuelve total.
+	inline double total()const{return this->importe_;}
 	//Devuelve total de pedidos.
-	inline double total()const noexcept{return this->total_;}
-	//Devuelve numero total.
-	inline static int n_total_pedidos()noexcept{return numPedido_;}
+	inline static size_t n_total_pedidos(){return total_;}
 private:
 	/*Atributos*/
-	double total_;
-	static int numPedido_;
-	int numero_;
+	size_t nPedido_;
+	double importe_;
+	static size_t total_;
 	Fecha fecha_;
 	Tarjeta const* tarjeta_;
 };
 
 /*Operadores externos*/
 //Operador ostream.
-ostream& operator<<(ostream& os,const Pedido& P)noexcept;
-
+ostream& operator<<(ostream& os,const Pedido&);
 
 #endif

@@ -124,6 +124,7 @@ private:
 //Operador <.
 bool operator<(const Tarjeta& T1,const Tarjeta& T2)noexcept;
 //Operador ostream.
-ostream& operator <<(ostream& os,const Tarjeta& T);
+ostream& operator<<(ostream& os,const Tarjeta& T);
+ostream& operator<<(ostream& os,const Tarjeta::Tipo& T);
 
 #endif

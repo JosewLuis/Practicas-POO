@@ -66,14 +66,16 @@ Tarjeta::Tarjeta(const Numero& numero,Usuario& usuario,const Fecha fecha):numero
 	}
 
 	switch(numero[0]){
-			case '4': this->tipo_=Tarjeta::VISA;break;
+		case '4': this->tipo_=Tarjeta::VISA;break;
     	case '5': this->tipo_=Tarjeta::Mastercard;break;
 	    case '6': this->tipo_=Tarjeta::Maestro;break;
 	    case '3':
-			switch (numero[1]){
-        		case '4' | '7': this->tipo_=Tarjeta::AmericanExpress;break;
-		        default: this->tipo_=Tarjeta::JCB;break;
-        	}
+			if(numero[1]=='4' || numero[1]=='7'){ 
+				this->tipo_=Tarjeta::AmericanExpress;
+			}else{
+				this->tipo_=Tarjeta::JCB;
+			}break;
+			
     	default: this->tipo_=Tarjeta::Otro;break;
 	}
 
@@ -105,27 +107,31 @@ bool operator<(const Tarjeta& T1,const Tarjeta& T2)noexcept{
 
 //Operador ostream.
 ostream& operator <<(ostream& os,const Tarjeta& T){
-    switch (T.tipo()){
-		    case 0:	os << " VISA ";break;
-				case 1: os << " Mastercard ";break;
-				case 2: os << " Maestro ";break;
-				case 3: os << " JCB	";break;
-				case 4: os << " AmericanExpress ";break;
-				case 5: os << " Otro ";break;
-        default: os << "Error, ninguna tarjeta conocida" << endl;
-    }
-
+	os << " " << T.tipo() << " ";
     os << "\n";
-		os << T.numero();
-		os << "\n";
-		os << T.titular_facial();
+	os << T.numero();
+	os << "\n";
+	os << T.titular_facial();
     os << "\n";
-		os << "Caduca: ";
-		os << setprecision(2);
-		os << ((T.caducidad().mes()<10)?'0':' ');
-		os << T.caducidad().mes();
-		os << "/";
-		os << (T.caducidad().anno()%100) << endl;
+	os << "Caduca: ";
+	os << setprecision(2);
+	os << ((T.caducidad().mes()<10)?'0':' ');
+	os << T.caducidad().mes();
+	os << "/";
+	os << (T.caducidad().anno()%100) << endl;
 
     return os;
+}
+
+//Operador ostream.
+ostream& operator<<(ostream& os,const Tarjeta::Tipo& T){
+	switch(T){
+		case 0:	os << "VISA";break;
+		case 1: os << "Mastercard";break;
+		case 2: os << "Maestro";break;
+		case 3: os << "JCB";break;
+		case 4: os << "AmericanExpress";break;
+		case 5: os << "Tipo indeterminado" << endl;
+    }
+	return os;
 }
